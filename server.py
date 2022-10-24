@@ -1,13 +1,15 @@
-from sanic import Sanic, text
+from databases import Database
+from sanic import Sanic
+
 from bluiprints.company import company
 from bluiprints.user import user
-from sanic_openapi import openapi3_blueprint
 
 app = Sanic("SoulID")
-# app.blueprint(openapi3_blueprint)
+app.config.HEALTH = True
 
 app.blueprint(company)
 app.blueprint(user)
+
 
 if __name__ == "__main__":
     app.run(dev=True)  # , fast=True

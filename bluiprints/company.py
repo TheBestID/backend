@@ -1,5 +1,5 @@
-from sanic.response import json, Request, text
 from sanic import Blueprint
+from sanic.response import Request, text
 
 company = Blueprint("company", url_prefix="/company")
 
