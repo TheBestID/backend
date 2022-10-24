@@ -13,3 +13,7 @@ class UserEmail:
 
 class UserEmailR200:
     sbt: str
+
+
+class UserCheck:
+    email: str

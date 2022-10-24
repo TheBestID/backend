@@ -2,8 +2,8 @@ from sanic import Blueprint
 from sanic.response import Request, json
 from sanic_ext import openapi
 
-from conn_to_sol import send_data
-from openapi.user import UserAddress, UserAddressR200, UserEmail, UserEmailR200
+from conn_to_sol import send_data, get_data
+from openapi.user import UserAddress, UserAddressR200, UserEmail, UserEmailR200, UserCheck
 from table import insert_address, insert_email, check_address, check_github
 
 user = Blueprint("user", url_prefix="/user")
@@ -11,12 +11,15 @@ user = Blueprint("user", url_prefix="/user")
 
 @user.post("/check")
 @openapi.body({"application/json": UserAddress}, required=True)
-@openapi.response(200, description='Wallet is registered')
+@openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
 @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
+    r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        res = await check_address(conn, request.json.get('address'))
-    return json({'check': res})
+        if await check_address(conn, r.get('address')):
+            data = await get_data(r.get('address'))
+            return json(data)
+    return json({'check': False})
 
 
 @user.post("/address")
@@ -25,8 +28,7 @@ async def check_user(request: Request):
 @openapi.response(409, description='Wallet is already registered')
 async def add_address(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        res = await check_address(conn, request.json.get('address'))
-        if res:
+        if await check_address(conn, request.json.get('address')):
             return json({'error': 'Wallet is already registered'}, 409)
         uid = await insert_address(conn, request.json.get('address'))
     return json({'uid': uid})
