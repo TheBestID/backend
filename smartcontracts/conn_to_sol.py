@@ -1,5 +1,5 @@
-from web3 import Web3, EthereumTesterProvider
-from abi import ABI
+from web3 import Web3
+from smartcontracts.abi import ABI
 import time
 
 

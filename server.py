@@ -4,7 +4,7 @@ from sanic import Sanic
 # from blueprints.company import company
 from blueprints.user import user
 from config import host, password, database, username
-from table import create
+from database.table import create
 
 app = Sanic("SoulID")
 
