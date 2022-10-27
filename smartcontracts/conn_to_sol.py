@@ -18,3 +18,6 @@ def get_data(smth):
     print(time.time() - start)
     pass
     return {'Тестовые': "Данные"}
+
+
+# get_data(1)
