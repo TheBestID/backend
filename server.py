@@ -1,14 +1,14 @@
 from asyncpg import create_pool
 from sanic import Sanic
 
-from bluiprints.company import company
-from bluiprints.user import user
+# from blueprints.company import company
+from blueprints.user import user
 from config import host, password, database, username
 from table import create
 
 app = Sanic("SoulID")
 
-app.config.HEALTH = True
+app.config.HEALTH = False
 
 # app.blueprint(company)
 app.blueprint(user)
