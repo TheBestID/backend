@@ -15,6 +15,6 @@ async def get_data(smth):
     w3 = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
     myContract = w3.eth.contract(address="0x61Cd0c3044F291A2A7fe08596D36Efd799cb7092", abi=ABI)
     a = myContract.functions.retrieve()
-    return {'Тестовые': a}
+    return {'num': a}
 
 # send_data(1)

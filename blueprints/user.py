@@ -1,5 +1,5 @@
 from sanic import Blueprint
-from sanic.response import Request, json
+from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
 from smartcontracts.conn_to_sol import send_data, get_data
@@ -19,7 +19,7 @@ async def check_user(request: Request):
         if await check_address(conn, r.get('address')):
             data = await get_data(r.get('address'))
             return json(data)
-    return json({'check': False})
+    return empty(409)
 
 
 @user.post("/address")
