@@ -21,28 +21,26 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS users(
-            id                  SERIAL                  PRIMARY KEY,
+            uid                 SERIAL                  PRIMARY KEY,
             address             TEXT                    NOT NULL            UNIQUE,
-            github              TEXT                    DEFAULT NULL        UNIQUE,
-            email               VARCHAR(100)            DEFAULT NULL        UNIQUE,
-            sbt                 TEXT                    DEFAULT NULL        UNIQUE,
-            registered_at       TIMESTAMP               DEFAULT NOW()   
+            txhash              TEXT                    NOT NULL            UNIQUE
         );
         ''')
     return True
 
 
-async def insert_address(conn: Union[Connection, Pool], address: str):
+async def insert_address(conn: Union[Connection, Pool], address: str, txHash: str):
     """
+    :param txHash:
     :param conn:            Объект подключения к БД
     :param address:         Адрес кошелька
     :return:                Идентификатор пользователя
     """
     return (await conn.fetchrow("""
-        INSERT INTO users (address)
-        VALUES ($1)
+        INSERT INTO users (address, txhash)
+        VALUES ($1, $2)
         RETURNING id;
-        """, address))['id']
+        """, address, txHash))['id']
 
 
 async def insert_github(conn: Union[Connection, Pool], github: str, uid: int):

@@ -29,7 +29,7 @@ async def add_address(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check_address(conn, request.json.get('address')):
             return json({'error': 'Wallet is already registered'}, 409)
-        uid = await insert_address(conn, request.json.get('address'))
+        uid = await insert_address(conn, request.json.get('address'), request.json.get('txHash'))
     return json({'uid': uid})
 
 
