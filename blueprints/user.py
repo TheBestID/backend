@@ -1,7 +1,9 @@
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
+from web3 import Web3
 
+from smartcontracts.abi import ABI
 from smartcontracts.conn_to_sol import send_data, get_data
 from openapi.user import UserAddress, UserAddressR200, UserEmail, UserEmailR200, UserCheck
 from database.table import insert_address, insert_email, check_address, check_github, get_database
@@ -14,11 +16,10 @@ user = Blueprint("user", url_prefix="/user")
 @openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
 @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
-    r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check_address(conn, r.get('address')):
-            data = await get_data(r.get('address'))
-            return json(data)
+        if await check_address(conn, request.json.get('address')):
+            data = request.app.config.get('contract').functions.retrieve().call()
+            return json({'num': data})
     return empty(409)
 
 
@@ -30,8 +31,13 @@ async def add_address(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check_address(conn, request.json.get('address')):
             return json({'error': 'Wallet is already registered'}, 409)
-        uid = await insert_address(conn, request.json.get('address'))
-    return json({'uid': uid})
+        await insert_address(conn, request.json.get('address'))
+        w = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
+        con = w.eth.contract(address="0x61Cd0c3044F291A2A7fe08596D36Efd799cb7092",
+                             abi=ABI)
+        data = con.functions.store(200).buildTransaction(
+            {'nonce': w.eth.getTransactionCount(request.json.get('address'))})
+    return json({'params': data})
 
 
 @user.post("/email")
@@ -55,3 +61,15 @@ async def add_email(request: Request):
 async def get_bd(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         return json(list(map(dict, await get_database(conn))))
+
+
+@user.get("/clear_bd")
+async def clear_bd(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        await get_database(conn)
+        return empty()
+
+
+@user.get("/msg_params")
+async def msg_params(request: Request):
+    pass

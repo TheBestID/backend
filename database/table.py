@@ -4,6 +4,7 @@ from typing import Union
 
 from asyncpg import Connection, Pool, connect
 
+
 # from config import host, username, password, database
 
 
@@ -116,6 +117,18 @@ async def get_database(conn: Union[Connection, Pool]) -> list:
         FROM users;
         """)
 
+
+async def clear_database(conn: Union[Connection, Pool]):
+    """
+    Возвращает бд
+
+    :param conn:        Объект подключения к БД
+    :return:
+    """
+    return await conn.fetch("""
+        DELETE *
+        FROM users;a
+        """)
 
 # async def main():
 #     conn = await connect(host=host, user=username, password=password, database=database)
