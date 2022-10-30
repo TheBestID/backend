@@ -69,5 +69,6 @@ async def clear_(request: Request):
 @openapi.body({"application/json": UserAddress}, required=True)
 async def msg_params(request: Request):
     data = request.app.config['contract'].functions.store(200).build_transaction(
-        {'nonce': request.app.config.get('web3').eth.get_transaction_count(request.json.get('address'))})
+        {'nonce': request.app.config.get('web3').eth.get_transaction_count(
+            Web3.toChecksumAddress(request.json.get('address')))})
     return json(data)
