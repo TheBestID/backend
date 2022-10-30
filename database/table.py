@@ -1,6 +1,10 @@
+import asyncio
+import time
 from typing import Union
 
-from asyncpg import Connection, Pool
+from asyncpg import Connection, Pool, connect
+
+from config import host, username, password, database
 
 
 async def create(conn: Union[Connection, Pool], clear=False) -> bool:
@@ -111,3 +115,15 @@ async def get_database(conn: Union[Connection, Pool]) -> list:
         SELECT id, address, email, sbt
         FROM users;
         """)
+
+
+async def main():
+    conn = await connect(host=host, user=username, password=password, database=database)
+    for i in range(50):
+        start = time.time()
+        a = list(map(dict, await get_database(conn)))
+        print(time.time() - start)
+    await conn.close()
+
+
+asyncio.run(main())
