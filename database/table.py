@@ -39,8 +39,8 @@ async def insert_address(conn: Union[Connection, Pool], address: str, txHash: st
     return (await conn.fetchrow("""
         INSERT INTO users (address, txhash)
         VALUES ($1, $2)
-        RETURNING id;
-        """, address, txHash))['id']
+        RETURNING uid;
+        """, address, txHash))['uid']
 
 
 async def insert_github(conn: Union[Connection, Pool], github: str, uid: int):
