@@ -12,9 +12,9 @@ user = Blueprint("user", url_prefix="/user")
 
 
 @user.post("/check")
-@openapi.body({"application/json": UserAddress}, required=True)
-@openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
-@openapi.response(409, description="Wallet isn't registered")
+# @openapi.body({"application/json": UserAddress}, required=True)
+# @openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
+# @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check_address(conn, request.json.get('address')):
@@ -24,20 +24,17 @@ async def check_user(request: Request):
 
 
 @user.post("/address")
-@openapi.body({"application/json": UserAddress}, required=True)
-@openapi.response(200, {"application/json": UserAddressR200}, 'OK')
-@openapi.response(409, description='Wallet is already registered')
+# @openapi.body({"application/json": UserAddress}, required=True)
+# @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
+# @openapi.response(409, description='Wallet is already registered')
 async def add_address(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check_address(conn, request.json.get('address')):
             return json({'error': 'Wallet is already registered'}, 409)
         await insert_address(conn, request.json.get('address'))
-        w = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
-        con = w.eth.contract(address="0x61Cd0c3044F291A2A7fe08596D36Efd799cb7092",
-                             abi=ABI)
-        data = con.functions.store(200).build_transaction(
-            {'nonce': w.eth.get_transaction_count(request.json.get('address'))})
-    return json({'params': data})
+        data = request.app.config['contract'].functions.store(200).build_transaction(
+            {'nonce': request.app.config.get('web3').eth.get_transaction_count(request.json.get('address'))})
+    return json(data)
 
 
 @user.post("/email")
