@@ -120,15 +120,14 @@ async def get_database(conn: Union[Connection, Pool]) -> list:
 
 async def clear_database(conn: Union[Connection, Pool]):
     """
-    Возвращает бд
 
     :param conn:        Объект подключения к БД
     :return:
     """
-    return await conn.fetch("""
-        DELETE *
-        FROM users;a
+    await conn.execute("""
+        DELETE FROM users;
         """)
+    return
 
 # async def main():
 #     conn = await connect(host=host, user=username, password=password, database=database)

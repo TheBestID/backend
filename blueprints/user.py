@@ -6,7 +6,7 @@ from web3 import Web3
 from smartcontracts.abi import ABI
 from smartcontracts.conn_to_sol import send_data, get_data
 from openapi.user import UserAddress, UserAddressR200, UserEmail, UserEmailR200, UserCheck
-from database.table import insert_address, insert_email, check_address, check_github, get_database
+from database.table import insert_address, insert_email, check_address, check_github, get_database, clear_database
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -35,8 +35,8 @@ async def add_address(request: Request):
         w = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
         con = w.eth.contract(address="0x61Cd0c3044F291A2A7fe08596D36Efd799cb7092",
                              abi=ABI)
-        data = con.functions.store(200).buildTransaction(
-            {'nonce': w.eth.getTransactionCount(request.json.get('address'))})
+        data = con.functions.store(200).build_transaction(
+            {'nonce': w.eth.get_transaction_count(request.json.get('address'))})
     return json({'params': data})
 
 
@@ -64,9 +64,9 @@ async def get_bd(request: Request):
 
 
 @user.get("/clear_bd")
-async def clear_bd(request: Request):
+async def clear_(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        await get_database(conn)
+        await clear_database(conn)
         return empty()
 
 
