@@ -7,7 +7,7 @@ from config import host, password, database, username
 from database.table import create
 
 app = Sanic("SoulID")
-app.config.CORS_ALWAYS_SEND = True
+# app.config.CORS_ALWAYS_SEND = True
 
 app.config.HEALTH = False
 
