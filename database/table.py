@@ -98,3 +98,16 @@ async def check_github(conn: Union[Connection, Pool], address: str) -> dict:
         FROM users
         WHERE address = $1;
         """, address)
+
+
+async def get_database(conn: Union[Connection, Pool]) -> list:
+    """
+    Возвращает бд
+
+    :param conn:        Объект подключения к БД
+    :return:
+    """
+    return await conn.fetch("""
+        SELECT id, address, email, sbt
+        FROM users;
+        """)

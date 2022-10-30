@@ -2,9 +2,9 @@ from sanic import Blueprint
 from sanic.response import Request, json
 from sanic_ext import openapi
 
-from conn_to_sol import send_data, get_data
+from smartcontracts.conn_to_sol import send_data, get_data
 from openapi.user import UserAddress, UserAddressR200, UserEmail, UserEmailR200, UserCheck
-from table import insert_address, insert_email, check_address, check_github
+from database.table import insert_address, insert_email, check_address, check_github, get_database
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -49,3 +49,9 @@ async def add_email(request: Request):
         sbt = await send_data({"uid": res[0], "github": res[1], "email": r.get('email'),
                                "address": r.get('address')})  # получение sbt от смарт-контракта
     return json({'sbt': sbt})
+
+
+@user.get("/get_bd")
+async def get_bd(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        return json(list(map(dict, await get_database(conn))))
