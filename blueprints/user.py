@@ -12,7 +12,7 @@ user = Blueprint("user", url_prefix="/user")
 
 
 @user.post("/check")
-# @openapi.body({"application/json": UserAddress}, required=True)
+@openapi.body({"application/json": UserAddress}, required=True)
 # @openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
 # @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
@@ -24,7 +24,7 @@ async def check_user(request: Request):
 
 
 @user.post("/address")
-# @openapi.body({"application/json": UserAddress}, required=True)
+@openapi.body({"application/json": UserAddress}, required=True)
 # @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
 # @openapi.response(409, description='Wallet is already registered')
 async def add_address(request: Request):
