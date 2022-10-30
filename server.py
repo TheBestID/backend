@@ -22,7 +22,7 @@ app.blueprint(user)
 async def init(app1):
     app1.config['POOL'] = await create_pool(host=host, user=username, password=password, database=database, min_size=1,
                                             max_size=1)
-    await create(app1.config['POOL'])
+    # await create(app1.config['POOL'])
     app1.config['web3'] = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
     app1.config['contract'] = app1.config['web3'].eth.contract(address="0x61Cd0c3044F291A2A7fe08596D36Efd799cb7092",
                                                                abi=ABI)
