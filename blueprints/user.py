@@ -31,10 +31,8 @@ async def add_address(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check_address(conn, request.json.get('address')):
             return json({'error': 'Wallet is already registered'}, 409)
-        await insert_address(conn, request.json.get('address'))
-        data = request.app.config['contract'].functions.store(200).build_transaction(
-            {'nonce': request.app.config.get('web3').eth.get_transaction_count(request.json.get('address'))})
-    return json(data)
+        uid = await insert_address(conn, request.json.get('address'))
+    return json({'uid': uid})
 
 
 @user.post("/email")
@@ -67,6 +65,9 @@ async def clear_(request: Request):
         return empty()
 
 
-@user.get("/msg_params")
+@user.post("/msg_params")
+@openapi.body({"application/json": UserAddress}, required=True)
 async def msg_params(request: Request):
-    pass
+    data = request.app.config['contract'].functions.store(200).build_transaction(
+        {'nonce': request.app.config.get('web3').eth.get_transaction_count(request.json.get('address'))})
+    return json(data)
