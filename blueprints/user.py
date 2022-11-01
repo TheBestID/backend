@@ -1,10 +1,12 @@
+from uuid import uuid4
+
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 from web3 import Web3
 
-from database.table import insert_address, check_address, get_database, clear_database
-from openapi.user import UserAddress
+from database.users import check_address, get_database, clear_database, add_user
+from openapi.user import UserAddress, UserAdd
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -21,16 +23,39 @@ async def check_user(request: Request):
     return empty(409)
 
 
-@user.post("/address")
+@user.post("/msg_params")
 @openapi.body({"application/json": UserAddress}, required=True)
-# @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
-# @openapi.response(409, description='Wallet is already registered')
-async def add_address(request: Request):
+async def msg_params(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check_address(conn, request.json.get('address')):
             return json({'error': 'Wallet is already registered'}, 409)
-        uid = await insert_address(conn, request.json.get('address'), request.json.get('txHash'))
-    return json({'uid': uid})
+    uid = uuid4()
+    # функция MINT СК
+    address = ''
+    data: dict = request.app.config['contract'].functions.CLAIM(address, uid).build_transaction(
+        {'nonce': request.app.config.get('web3').eth.get_transaction_count(
+            Web3.toChecksumAddress(request.json.get('address')))})
+    data['value'] = Web3.toHex(data['value'])
+    data['gas'] = Web3.toHex(data['gas'])
+    data['maxFeePerGas'] = Web3.toHex(data['maxFeePerGas'])
+    data['maxPriorityFeePerGas'] = Web3.toHex(data['maxPriorityFeePerGas'])
+    data['chainId'] = Web3.toHex(data['chainId'])
+    data['nonce'] = Web3.toHex(data['nonce'])
+    data['uid'] = str(uid)
+    return json(data)
+
+
+@user.post("/add")
+@openapi.body({"application/json": UserAdd}, required=True)
+# @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
+# @openapi.response(409, description='Wallet is already registered')
+async def add_user(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        if await check_address(conn, r.get('address')):
+            return json({'error': 'Wallet is already registered'}, 409)
+        await add_user(conn, r.get('address'), r.get('uid'), r.get('txHash'))
+    return empty(201)
 
 
 # @user.post("/email")
@@ -61,18 +86,3 @@ async def clear_(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         await clear_database(conn)
         return empty()
-
-
-@user.post("/msg_params")
-@openapi.body({"application/json": UserAddress}, required=True)
-async def msg_params(request: Request):
-    data: dict = request.app.config['contract'].functions.store(200).build_transaction(
-        {'nonce': request.app.config.get('web3').eth.get_transaction_count(
-            Web3.toChecksumAddress(request.json.get('address')))})
-    data['value'] = Web3.toHex(data['value'])
-    data['gas'] = Web3.toHex(data['gas'])
-    data['maxFeePerGas'] = Web3.toHex(data['maxFeePerGas'])
-    data['maxPriorityFeePerGas'] = Web3.toHex(data['maxPriorityFeePerGas'])
-    data['chainId'] = Web3.toHex(data['chainId'])
-    data['nonce'] = Web3.toHex(data['nonce'])
-    return json(data)

@@ -7,7 +7,6 @@ from web3 import Web3
 # from blueprints.company import company
 from blueprints.user import user
 from config import host, password, database, username
-from database.table import create
 from smartcontracts.abi import ABI
 
 app = Sanic("SoulID")
