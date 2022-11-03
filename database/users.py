@@ -29,18 +29,32 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     return True
 
 
-async def add_user(conn: Union[Connection, Pool], address: str, uid: UUID, txHash: str):
+async def add_user(conn: Union[Connection, Pool], address: str, chainid: UUID, uuid: str):
     """
     :param conn:            Объект подключения к БД
-    :param txHash:
-    :param uid:             Идентификатор sbt
+    :param chainid:
+    :param uuid:             Идентификатор sbt
     :param address:         Адрес кошелька
     :return:                Идентификатор пользователя
     """
     await conn.execute("""
-        INSERT INTO users (address, uid, txhash)
+        INSERT INTO users (address, chainid, uuid)
         VALUES ($1, $2, $3)
-        """, address, uid, txHash)
+        """, address, chainid, uuid)
+
+
+async def reg_user(conn: Union[Connection, Pool], address: str, chainid: UUID):
+    """
+    :param conn:            Объект подключения к БД
+    :param chainid:
+    :param address:         Адрес кошелька
+    :return:                Идентификатор пользователя
+    """
+    await conn.execute("""
+        UPDATE users 
+        SET registered = True
+        WHERE address = $1 AND chainid = $2;
+        """, address, chainid)
 
 
 async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
@@ -83,6 +97,9 @@ async def clear_database(conn: Union[Connection, Pool]):
     """
     await conn.execute("""
         DELETE FROM users;
+        """)
+    await conn.execute("""
+        DELETE FROM usersinfo;
         """)
     return
 

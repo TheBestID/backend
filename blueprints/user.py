@@ -5,7 +5,7 @@ from sanic.response import Request, json, empty
 from sanic_ext import openapi
 from web3 import Web3
 
-from database.users import check, get_database, clear_database, add_user, get_uuid
+from database.users import check, get_database, clear_database, add_user, get_uuid, reg_user
 from database.users import create as create_users
 from database.usersinfo import create as create_usersinfo
 from database.usersinfo import get_info
@@ -21,8 +21,7 @@ user = Blueprint("user", url_prefix="/user")
 async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, request.json.get('address'), request.json.get('chainId')):
-            data = request.app.config.get('contract').functions.retrieve().call()
-            return json({'num': data})
+            return json({"uid": 1})
     return empty(409)
 
 
@@ -41,13 +40,15 @@ async def get_user(request: Request):
 @user.post("/msg_params")
 @openapi.body({"application/json": UserAddress}, required=True)
 async def msg_params(request: Request):
+    r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, request.json.get('address'), request.json.get('chainId')):
+        if await check(conn, r.get('address'), r.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
-    uid = uuid4()
+        uuid = uuid4().hex
+        await add_user(conn, r.get('address'), r.get('chainId'), uuid)
     # функция MINT СК
     address = ''
-    data: dict = request.app.config['contract'].functions.CLAIM(address, uid).build_transaction(
+    data: dict = request.app.config['contract'].functions.CLAIM(address, uuid).build_transaction(
         {'nonce': request.app.config.get('web3').eth.get_transaction_count(
             Web3.toChecksumAddress(request.json.get('address')))})
     data['value'] = Web3.toHex(data['value'])
@@ -56,7 +57,7 @@ async def msg_params(request: Request):
     data['maxPriorityFeePerGas'] = Web3.toHex(data['maxPriorityFeePerGas'])
     data['chainId'] = Web3.toHex(data['chainId'])
     data['nonce'] = Web3.toHex(data['nonce'])
-    data['uid'] = str(uid)
+    data['uid'] = str(uuid)
     return json(data)
 
 
@@ -64,12 +65,12 @@ async def msg_params(request: Request):
 @openapi.body({"application/json": UserAdd}, required=True)
 # @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
 # @openapi.response(409, description='Wallet is already registered')
-async def add_user(request: Request):
+async def add(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, request.json.get('address'), request.json.get('chainId')):
+        if await check(conn, r.get('address'), r.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
-        await add_user(conn, r.get('address'), r.get('uid'), r.get('txHash'))
+        await reg_user(conn, r.get('address'), r.get('chainId'))
     return empty(201)
 
 
