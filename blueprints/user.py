@@ -30,7 +30,7 @@ async def get_user():
 @openapi.body({"application/json": UserAddress}, required=True)
 async def msg_params(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, request.json.get('address')):
+        if await check(conn, request.json.get('address'), request.json.get('checkId')):
             return json({'error': 'Wallet is already registered'}, 409)
     uid = uuid4()
     # функция MINT СК
@@ -55,7 +55,7 @@ async def msg_params(request: Request):
 async def add_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address')):
+        if await check(conn, r.get('address'), request.json.get('checkId')):
             return json({'error': 'Wallet is already registered'}, 409)
         await add_user(conn, r.get('address'), r.get('uid'), r.get('txHash'))
     return empty(201)

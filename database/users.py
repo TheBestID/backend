@@ -24,7 +24,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
             chainid             TEXT        NOT NULL,
             uuid                UUID        NOT NULL,
             registered          BOOL        DEFAULT FALSE,
-            info                TEXT        DEFAULT ''
+            
         );
         ''')
     return True

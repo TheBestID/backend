@@ -21,9 +21,8 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS usersinfo(
-            sbtid               UUID                    PRIMARY KEY,
-            username            TEXT                    NOT NULL            UNIQUE,
-            txhash              TEXT                    NOT NULL            UNIQUE
+            uuid                UUID        REFERENCES      users(uuid)
+            info                TEXT        DEFAULT ''
         );
         ''')
     return True
