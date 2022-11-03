@@ -52,11 +52,14 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
     :param chainId:     ID сети
     :return:            True - найден, иначе False
     """
-    return (await conn.fetchrow("""
+    res = await conn.fetchrow("""
         SELECT registered
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId))['registered']
+        """, address, chainId)
+    if res:
+        return res['registered']
+    return False
 
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
@@ -84,7 +87,7 @@ async def clear_database(conn: Union[Connection, Pool]):
     return
 
 
-async def get_uid(conn: Union[Connection, Pool], address: str, chainId: str):
+async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str):
     """
     Возвращает uuid по адресу с конкретным chain_id
 

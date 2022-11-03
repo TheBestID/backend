@@ -25,4 +25,5 @@ class UserEmailR200:
 
 
 class UserCheck:
-    email: str
+    address: str
+    chainIn: str

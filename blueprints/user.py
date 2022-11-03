@@ -5,19 +5,22 @@ from sanic.response import Request, json, empty
 from sanic_ext import openapi
 from web3 import Web3
 
-from database.users import check_address, get_database, clear_database, add_user, get_uuid, get_info
-from openapi.user import UserAddress, UserAdd
+from database.users import check, get_database, clear_database, add_user, get_uuid
+from database.users import create as create_users
+from database.usersinfo import create as create_usersinfo
+from database.usersinfo import get_info
+from openapi.user import UserAddress, UserAdd, UserCheck
 
 user = Blueprint("user", url_prefix="/user")
 
 
 @user.post("/check")
-@openapi.body({"application/json": UserAddress}, required=True)
+@openapi.body({"application/json": UserCheck}, required=True)
 # @openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
 # @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check_address(conn, request.json.get('address')):
+        if await check(conn, request.json.get('address'), request.json.get('chainId')):
             data = request.app.config.get('contract').functions.retrieve().call()
             return json({'num': data})
     return empty(409)
@@ -26,9 +29,9 @@ async def check_user(request: Request):
 @user.get("/get")
 async def get_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await check_address(conn, r.get('address')):
+        if not await check(conn, request.json.get('address'), request.json.get('chainId')):
             return json({'error': 'User is not registred'}, 409)
-        
+
         uuid = await get_uuid(conn, request.json.get('address'), request.json.get('chainId'))
         info = await get_info(conn, uuid)
 
@@ -39,7 +42,7 @@ async def get_user(request: Request):
 @openapi.body({"application/json": UserAddress}, required=True)
 async def msg_params(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check_address(conn, request.json.get('address')):
+        if await check(conn, request.json.get('address'), request.json.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
     uid = uuid4()
     # функция MINT СК
@@ -64,7 +67,7 @@ async def msg_params(request: Request):
 async def add_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check_address(conn, r.get('address')):
+        if await check(conn, request.json.get('address'), request.json.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
         await add_user(conn, r.get('address'), r.get('uid'), r.get('txHash'))
     return empty(201)
@@ -97,4 +100,12 @@ async def get_bd(request: Request):
 async def clear_(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         await clear_database(conn)
+        return empty()
+
+
+@user.get("/create_db")
+async def create_db(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        await create_usersinfo(conn)
+        await create_users(conn)
         return empty()
