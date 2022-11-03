@@ -1,9 +1,7 @@
-import asyncio
-import time
 from typing import Union
 from uuid import UUID
 
-from asyncpg import Connection, Pool, connect
+from asyncpg import Connection, Pool
 
 
 # from config import host, username, password, database
@@ -22,9 +20,9 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS users(
-            address             TEXT                    PRIMARY KEY,
-            uid                 UUID                    NOT NULL
-            txhash              TEXT                    NOT NULL            UNIQUE
+            address             TEXT        PRIMARY KEY,
+            registered          BOOL        DEFAULT FALSE,
+            info                TEXT        DEFAULT ''
         );
         ''')
     return True
@@ -52,11 +50,11 @@ async def check_address(conn: Union[Connection, Pool], address: str) -> bool:
     :param address:     Адрес кошелька
     :return:            True - найден, иначе False
     """
-    return bool(await conn.fetchrow("""
-        SELECT address
+    return (await conn.fetchrow("""
+        SELECT registered
         FROM users
         WHERE address = $1;
-        """, address))
+        """, address))['registered']
 
 
 async def get_database(conn: Union[Connection, Pool]) -> list:

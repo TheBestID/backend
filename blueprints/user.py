@@ -21,6 +21,9 @@ async def check_user(request: Request):
             data = request.app.config.get('contract').functions.retrieve().call()
             return json({'num': data})
     return empty(409)
+@user.get("/get")
+async def get_user():
+
 
 
 @user.post("/msg_params")
