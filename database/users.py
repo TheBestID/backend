@@ -21,6 +21,8 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS users(
             address             TEXT        PRIMARY KEY,
+            chainid             TEXT        NOT NULL,
+            uuid                UUID        NOT NULL,
             registered          BOOL        DEFAULT FALSE,
             info                TEXT        DEFAULT ''
         );
@@ -42,19 +44,20 @@ async def add_user(conn: Union[Connection, Pool], address: str, uid: UUID, txHas
         """, address, uid, txHash)
 
 
-async def check_address(conn: Union[Connection, Pool], address: str) -> bool:
+async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
     """
     Проверяет наличие пользователя по кошельку
 
     :param conn:        Объект подключения к БД
     :param address:     Адрес кошелька
+    :param chainId:     ID сети
     :return:            True - найден, иначе False
     """
     return (await conn.fetchrow("""
         SELECT registered
         FROM users
-        WHERE address = $1;
-        """, address))['registered']
+        WHERE address = $1 AND checkid = $2;
+        """, address, chainId))['registered']
 
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
