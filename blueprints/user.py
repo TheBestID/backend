@@ -48,7 +48,7 @@ async def msg_params(request: Request):
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
     # функция MINT СК
     address = ''
-    data: dict = request.app.config['contract'].functions.CLAIM(address, uuid).build_transaction(
+    data: dict = request.app.config['contract'].functions.store(100).build_transaction(
         {'nonce': request.app.config.get('web3').eth.get_transaction_count(
             Web3.toChecksumAddress(request.json.get('address')))})
     data['value'] = Web3.toHex(data['value'])

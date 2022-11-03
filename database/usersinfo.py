@@ -42,9 +42,14 @@ async def get_info(conn: Union[Connection, Pool], uuid: str) -> dict:
 
 
 async def add_info(conn: Union[Connection, Pool], uuid: str, info: str):
-    
+    """
+    Добавляет запись в таблицу usersinfo
+    :param conn:
+    :param uuid:
+    :param info:
+    :return:
+    """
     await conn.execute("""
         INSERT INTO usersinfo (uuid, info)
         VALUES ($1, $2)
         """, uuid, info)
-
