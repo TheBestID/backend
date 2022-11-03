@@ -84,6 +84,22 @@ async def clear_database(conn: Union[Connection, Pool]):
         """)
     return
 
+async def get_uid(conn: Union[Connection, Pool], address: str, chainId):
+    """
+    Возвращает uuid по адресу с конкретным chain_id
+
+    :param conn:        Объект подключения к БД
+    :return:
+    """
+
+    return (await conn.fetchrow("""
+        SELECT uuid
+        FROM users
+        WHERE address = $1 AND chainid = $2;
+        """, address, chainId))['uuid']
+
+    
+
 # async def main():
 #     conn = await connect(host=host, user=username, password=password, database=database)
 #     for i in range(50):
