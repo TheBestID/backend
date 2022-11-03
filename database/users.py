@@ -23,8 +23,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
             address             TEXT        PRIMARY KEY,
             chainid             TEXT        NOT NULL,
             uuid                UUID        NOT NULL,
-            registered          BOOL        DEFAULT FALSE,
-            
+            registered          BOOL        DEFAULT FALSE
         );
         ''')
     return True
@@ -56,7 +55,7 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
     return (await conn.fetchrow("""
         SELECT registered
         FROM users
-        WHERE address = $1 AND checkid = $2;
+        WHERE address = $1 AND chainid = $2;
         """, address, chainId))['registered']
 
 

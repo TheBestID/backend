@@ -6,6 +6,8 @@ from sanic_ext import openapi
 from web3 import Web3
 
 from database.users import check, get_database, clear_database, add_user
+from database.users import create as create_user
+from database.usersinfo import create as create_userinfo
 from openapi.user import UserAddress, UserAdd
 
 user = Blueprint("user", url_prefix="/user")
@@ -20,10 +22,6 @@ async def check_user(request: Request):
         if await check(conn, request.json.get('address'), request.json.get('checkId')):
             return json({'uid': 1})
     return empty(409)
-
-
-@user.get("/get")
-async def get_user():
 
 
 @user.post("/msg_params")
@@ -88,4 +86,12 @@ async def get_bd(request: Request):
 async def clear_(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         await clear_database(conn)
+        return empty()
+
+
+@user.get("/create_bd")
+async def create_bd(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        await create_user(conn, True)
+        await create_userinfo(conn, True)
         return empty()
