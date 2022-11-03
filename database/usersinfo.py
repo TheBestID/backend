@@ -19,21 +19,23 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS usersinfo(
-            uuid                UUID        ,
+            uuid                UUID        PRIMARY KEY,
             info                TEXT        DEFAULT ''
         );
         ''')
     return True
 
 
-async def get_info(conn: Union[Connection, Pool]) -> list:
+async def get_info(conn: Union[Connection, Pool], uuid: str) -> dict:
     """
     Возвращает бд
 
     :param conn:        Объект подключения к БД
+    :param uuid:        soul_id
     :return:
     """
-    return await conn.fetch("""
-        SELECT id, address, email, sbt
-        FROM users;
-        """)
+    return await conn.fetchrow("""
+        SELECT info
+        FROM usersinfo
+        WHERE uuid = $1;
+        """, uuid)
