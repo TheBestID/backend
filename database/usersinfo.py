@@ -39,3 +39,12 @@ async def get_info(conn: Union[Connection, Pool], uuid: str) -> dict:
         FROM usersinfo
         WHERE uuid = $1;
         """, uuid)
+
+
+async def add_info(conn: Union[Connection, Pool], uuid: str, info: str):
+    
+    await conn.execute("""
+        INSERT INTO usersinfo (uuid, info)
+        VALUES ($1, $2)
+        """, uuid, info)
+
