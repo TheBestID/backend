@@ -29,7 +29,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     return True
 
 
-async def add_user(conn: Union[Connection, Pool], address: str, chainid: UUID, uuid: str):
+async def add_user(conn: Union[Connection, Pool], address: str, chainid: str, uuid: str):
     """
     :param conn:            Объект подключения к БД
     :param chainid:
@@ -84,7 +84,7 @@ async def get_database(conn: Union[Connection, Pool]) -> list:
     :return:
     """
     return await conn.fetch("""
-        SELECT id, address, email, sbt
+        SELECT address, chainid, registered
         FROM users;
         """)
 

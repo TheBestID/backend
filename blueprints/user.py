@@ -38,7 +38,7 @@ async def get_user(request: Request):
 
 
 @user.post("/msg_params")
-@openapi.body({"application/json": UserAddress}, required=True)
+@openapi.body({"application/json": UserCheck}, required=True)
 async def msg_params(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
@@ -57,12 +57,11 @@ async def msg_params(request: Request):
     data['maxPriorityFeePerGas'] = Web3.toHex(data['maxPriorityFeePerGas'])
     data['chainId'] = Web3.toHex(data['chainId'])
     data['nonce'] = Web3.toHex(data['nonce'])
-    data['uid'] = str(uuid)
     return json(data)
 
 
 @user.post("/add")
-@openapi.body({"application/json": UserAdd}, required=True)
+@openapi.body({"application/json": UserCheck}, required=True)
 # @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
 # @openapi.response(409, description='Wallet is already registered')
 async def add(request: Request):
@@ -71,7 +70,7 @@ async def add(request: Request):
         if await check(conn, r.get('address'), r.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
         await reg_user(conn, r.get('address'), r.get('chainId'))
-    return empty(201)
+    return json({"uid": 1})
 
 
 # @user.post("/email")
