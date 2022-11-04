@@ -5,7 +5,7 @@ from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
 from database.vacancy import create, clear_database, get_database, add_vacancy, isAllowed, isCreated
-from database.vacancy import get_previews_sort_by_int, get_preview, get_previews_sort_by_str, delete_vacancy
+from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy
 
 from openapi.vacancy import VacancyTemplate, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete
 
@@ -48,13 +48,13 @@ async def get_previews_sortby_two(request: Request):
     return empty(409)
 
 
-@vacancy.post("/get_preview_by_id")
+@vacancy.post("/get_vacancy_by_id")
 @openapi.body({"application/json": GetPreviewsByID}, required=True)
 async def get_preview_by_id(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
         if await isCreated(conn, r.get('id')):
-            return json(list(map(dict, await get_preview(conn,   r.get('id')))))
+            return json(list(map(dict, await get_vacancy(conn,   r.get('id')))))
     return empty(409, {'error': 'no vacancy with such id'})
     
 @vacancy.post("/delete_vacancy")

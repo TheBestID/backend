@@ -75,11 +75,14 @@ async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str
         """, sort_type, sort_value, sort_value_int, top_number, offset_number)
 
 
-async def get_preview(conn: Union[Connection, Pool], id: int) -> list:
+async def get_vacancy(conn: Union[Connection, Pool], id: int) -> list:
     return await conn.fetch("""
         SELECT owner_uuid, price, category, timestamp, info
         FROM vacancy WHERE id = $1;
         """, id)
+
+
+#async def edit_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, timestamp: str, info: str):
 
 
 async def delete_vacancy(conn: Union[Connection, Pool], id: int):
