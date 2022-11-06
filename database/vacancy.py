@@ -5,9 +5,17 @@ import time
 from asyncpg import Connection, Pool
 
 
-async def isAllowed(owner_uuid: UUID):
+async def isAllowed(conn: Union[Connection, Pool], owner_uuid: UUID, id: int):
     #some work connected to chek can user create / delete vacancy
-    return True
+    if str(owner_uuid) == str(await conn.fetchrow("""
+        SELECT owner_uuid
+        FROM vacancy
+        WHERE id = $1;
+        """, id)):
+        return True
+
+    else:
+        return False
 
 async def addSBTvac():
     #some work to 
@@ -56,8 +64,6 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
 # what is the defualt type of timestamp?
 async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str):
-    """
-    """
     await conn.execute("""
         INSERT INTO vacancy (owner_uuid, price, category, info)
         VALUES ($1, $2, $3, $4);
@@ -117,12 +123,6 @@ async def delete_vacancy(conn: Union[Connection, Pool], id: int):
      """, id)
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
-    """
-    Возвращает бд
-
-    :param conn:        Объект подключения к БД
-    :return:
-    """
     return await conn.fetch("""
         SELECT id, owner_uuid, price, category, timestamp::TEXT , info
         FROM vacancy;

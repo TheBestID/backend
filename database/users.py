@@ -10,7 +10,6 @@ from asyncpg import Connection, Pool
 async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     """
     Создает таблицу users
-
     :param conn:    Объект подключения к БД
     :param clear:   If True -> очистить таблицу
     :return:
@@ -60,7 +59,6 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainid: UUID):
 async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
     """
     Проверяет наличие пользователя по кошельку
-
     :param conn:        Объект подключения к БД
     :param address:     Адрес кошелька
     :param chainId:     ID сети
@@ -79,19 +77,17 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
 async def get_database(conn: Union[Connection, Pool]) -> list:
     """
     Возвращает бд
-
     :param conn:        Объект подключения к БД
     :return:
     """
     return await conn.fetch("""
-        SELECT address, chainid, registered
+        SELECT address, chainid, registered, uuid::TEXT
         FROM users;
         """)
 
 
 async def clear_database(conn: Union[Connection, Pool]):
     """
-
     :param conn:        Объект подключения к БД
     :return:
     """
@@ -107,7 +103,6 @@ async def clear_database(conn: Union[Connection, Pool]):
 async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str):
     """
     Возвращает uuid по адресу с конкретным chain_id
-
     :param chainId:
     :param address:
     :param conn:        Объект подключения к БД

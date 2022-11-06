@@ -6,7 +6,7 @@ from sanic_ext import openapi
 
 from database.vacancy import create, clear_database, get_database, add_vacancy, edit_vacancy, isAllowed, isCreated
 from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy
-from database.users  import check
+from database.users  import check, get_uuid
 
 from openapi.vacancy import VacancyTemplate, VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit
 
@@ -26,12 +26,11 @@ async def get_bd(request: Request):
 async def add(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        #if await check(conn, r.get('address'), r.get('chaiId')) == True:
-        if True == True:
-            await add_vacancy(conn, 'r.get(owner_uuid)', r.get('price'), r.get('category'), r.get('info'))
+        if await check(conn, r.get('address'), str(r.get('chainId'))) == True:
+            await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), str(r.get('chainId')))), r.get('price'), r.get('category'), r.get('info'))
             return empty(200)
         else:
-           return empty(409, {'eror': check(conn, r.get('address'), r.get('chaiId'))})
+           return empty(409, {'eror': 'No permissions' })
 
 
 
@@ -70,6 +69,7 @@ async def edit_va(request: Request):
         r = request.json
         # check permissions 
         #if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
+        #if await isCreated(conn, r.get('id')) and await isAllowed(conn, await get_uuid(conn,  r.get('address'), str(r.get('chainId'))), r.get('id')):
         if await isCreated(conn, r.get('id')):
             await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('info'))
             return empty(200)
