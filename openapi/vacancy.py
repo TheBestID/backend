@@ -9,7 +9,6 @@ class VacancyTemplate:
 class VacancyAdd:
     address: str
     chainId: int
-    owner_uuid: UUID
     price: int
     category: str
     info: str   
@@ -28,6 +27,7 @@ class GetPreviews:
     value_sorted: str
     offset: int
     top_number: int
+    in_asc: bool
 
 
 class GetPreviewsBySTR:
@@ -36,6 +36,7 @@ class GetPreviewsBySTR:
     sort_value2: str
     offset_number: int
     top_number: int
+    in_asc: bool
     
 
 class GetPreviewsByID:

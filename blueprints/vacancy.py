@@ -28,7 +28,7 @@ async def add(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         #if await check(conn, r.get('address'), r.get('chaiId')) == True:
         if True == True:
-            await add_vacancy(conn, str(r.get('owner_uuid')), r.get('price'), r.get('category'), r.get('info'))
+            await add_vacancy(conn, 'r.get(owner_uuid)', r.get('price'), r.get('category'), r.get('info'))
             return empty(200)
         else:
            return empty(409, {'eror': check(conn, r.get('address'), r.get('chaiId'))})
@@ -40,7 +40,7 @@ async def add(request: Request):
 async def get_previews_sortby_one(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'), r.get('top_number')))))
+        return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'), r.get('top_number'), r.get('in_asc')))))
     return empty(409)
 
 
@@ -49,7 +49,7 @@ async def get_previews_sortby_one(request: Request):
 async def get_previews_sortby_two(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type1'), r.get('sort_value1'), r.get('sort_value2'), r.get('offset_number'), r.get('top_number')))))
+        return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type1'), r.get('sort_value1'), r.get('sort_value2'), r.get('offset_number'), r.get('top_number'), r.get('in_asc')))))
     return empty(409)
 
 
