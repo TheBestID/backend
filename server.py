@@ -6,6 +6,7 @@ from web3 import Web3
 
 # from blueprints.company import company
 from blueprints.user import user
+from blueprints.vacancy import vacancy
 from config import host, password, database, username
 from smartcontracts.abi import ABI
 
@@ -15,6 +16,8 @@ app.config.HEALTH = False
 
 # app.blueprint(company)
 app.blueprint(user)
+\
+app.blueprint(vacancy)
 
 
 @app.before_server_start
