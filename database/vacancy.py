@@ -9,6 +9,10 @@ async def isAllowed(owner_uuid: UUID):
     #some work connected to chek can user create / delete vacancy
     return True
 
+async def addSBTvac():
+    #some work to 
+    pass
+
 async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
     """
     Проверяет наличие вакансии
@@ -82,7 +86,10 @@ async def get_vacancy(conn: Union[Connection, Pool], id: int) -> list:
         """, id)
 
 
-#async def edit_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, timestamp: str, info: str):
+async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, timestamp: str, info: str):
+    await conn.fetch("""
+        UPDATE vacancy SET price = $1, category = $2, timestamp = $3, info = $4 WHERE id = $5;
+    """, price, category, timestamp, info, id)
 
 
 async def delete_vacancy(conn: Union[Connection, Pool], id: int):

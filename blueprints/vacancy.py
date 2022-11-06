@@ -4,10 +4,11 @@ from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
-from database.vacancy import create, clear_database, get_database, add_vacancy, isAllowed, isCreated
+from database.vacancy import create, clear_database, get_database, add_vacancy, edit_vacancy, isAllowed, isCreated
 from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy
+from database.users  import check
 
-from openapi.vacancy import VacancyTemplate, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete
+from openapi.vacancy import VacancyTemplate, VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit
 
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 
@@ -19,14 +20,18 @@ async def get_bd(request: Request):
 
 
 @vacancy.post("/add")
-@openapi.body({"application/json": VacancyTemplate}, required=True)
+@openapi.body({"application/json": VacancyAdd}, required=True)
 # @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
 # @openapi.response(409, description='Wallet is already registered')
 async def add(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        await add_vacancy(conn, str(r.get('owner_uuid')), r.get('price'), r.get('category'), r.get('timestamp'), r.get('info'))
-    return json({"Vacancy is added": 1})
+        #if await check(conn, r.get('address'), r.get('chaiId')) == True:
+        if True == True:
+            await add_vacancy(conn, str(r.get('owner_uuid')), r.get('price'), r.get('category'), r.get('timestamp'), r.get('info'))
+            return empty(200)
+        else:
+           return empty(409, {'eror': check(conn, r.get('address'), r.get('chaiId'))})
 
 
 
@@ -57,12 +62,28 @@ async def get_preview_by_id(request: Request):
             return json(list(map(dict, await get_vacancy(conn,   r.get('id')))))
     return empty(409, {'error': 'no vacancy with such id'})
     
+
+@vacancy.post("/edit_vacancy")
+@openapi.body({"application/json": VacancyEdit}, required=True)
+async def edit_va(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        r = request.json
+        # check permissions 
+        #if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
+        if await isCreated(conn, r.get('id')):
+            await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('timestamp'), r.get('info'))
+            return empty(200)
+        else:
+            return empty(409, {'error409': 'No permission to edit or no such vacancy'})
+
+
 @vacancy.post("/delete_vacancy")
 @openapi.body({"application/json": Delete}, required=True)
 async def delete_va(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
+        #if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
+        if await isCreated(conn, r.get('id')):
             await delete_vacancy(conn, r.get('id'))
             return empty(200)
         else:

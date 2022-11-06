@@ -7,6 +7,25 @@ class VacancyTemplate:
     timestamp: str
     info: str   
 
+class VacancyAdd:
+    address: str
+    chainId: int
+    owner_uuid: UUID
+    price: int
+    category: str
+    timestamp: str
+    info: str   
+
+class VacancyEdit:
+    id: int
+    address: str
+    chainId: int
+    address: str
+    price: int
+    category: str
+    timestamp: str
+    info: str   
+
 
 class GetPreviews:
     value_sorted: str
@@ -28,4 +47,5 @@ class GetPreviewsByID:
 
 class Delete:
     id: int
-    owner_uuid: UUID
+    address: str
+    chainId: int
