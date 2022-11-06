@@ -4,7 +4,6 @@ class VacancyTemplate:
     owner_uuid: UUID
     price: int
     category: str
-    timestamp: str
     info: str   
 
 class VacancyAdd:
@@ -13,7 +12,6 @@ class VacancyAdd:
     owner_uuid: UUID
     price: int
     category: str
-    timestamp: str
     info: str   
 
 class VacancyEdit:
@@ -23,7 +21,6 @@ class VacancyEdit:
     address: str
     price: int
     category: str
-    timestamp: str
     info: str   
 
 

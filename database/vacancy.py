@@ -45,7 +45,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
             owner_uuid          TEXT        DEFAULT '',
             price               INT         NOT NULL,
             category            TEXT        DEFAULT '',
-            timestamp           TEXT        DEFAULT '',
+            timestamp           TIMESTAMP   DEFAULT NOW(),
             info                TEXT        NOT NULL
             
         );
@@ -55,18 +55,18 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
 
 # what is the defualt type of timestamp?
-async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, timestamp: str, info: str):
+async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str):
     """
     """
     await conn.execute("""
-        INSERT INTO vacancy (owner_uuid, price, category, timestamp, info)
-        VALUES ($1, $2, $3, $4, $5);
-        """, owner_uuid, price, category, timestamp, info)
+        INSERT INTO vacancy (owner_uuid, price, category, info)
+        VALUES ($1, $2, $3, $4);
+        """, owner_uuid, price, category, info)
 
 
 async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int,  top_number: int) -> list:
     return await conn.fetch("""
-        SELECT owner_uuid, price, category, timestamp
+        SELECT owner_uuid, price, category, timestamp::TEXT
         FROM vacancy ORDER BY $1 LIMIT $2 OFFSET $3 ROW;
         """, sort_value, top_number, offset_number)
 
@@ -74,22 +74,22 @@ async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: st
 #doesn't work correctly
 async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str, sort_value: str, sort_value_int: str, offset_number: int,  top_number: int) -> list:
     return await conn.fetch("""
-        SELECT owner_uuid, price, category, timestamp
+        SELECT owner_uuid, price, category, timestamp::TEXT
         FROM vacancy WHERE $1 = $2 ORDER BY $3 LIMIT $4 OFFSET $5 ROW;
         """, sort_type, sort_value, sort_value_int, top_number, offset_number)
 
 
 async def get_vacancy(conn: Union[Connection, Pool], id: int) -> list:
     return await conn.fetch("""
-        SELECT owner_uuid, price, category, timestamp, info
+        SELECT owner_uuid, price, category, timestamp::TEXT, info
         FROM vacancy WHERE id = $1;
         """, id)
 
 
-async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, timestamp: str, info: str):
+async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, info: str):
     await conn.fetch("""
-        UPDATE vacancy SET price = $1, category = $2, timestamp = $3, info = $4 WHERE id = $5;
-    """, price, category, timestamp, info, id)
+        UPDATE vacancy SET price = $1, category = $2, info = $3 WHERE id = $4;
+    """, price, category, info, id)
 
 
 async def delete_vacancy(conn: Union[Connection, Pool], id: int):
@@ -105,9 +105,10 @@ async def get_database(conn: Union[Connection, Pool]) -> list:
     :return:
     """
     return await conn.fetch("""
-        SELECT id, owner_uuid, price, category, timestamp, info
+        SELECT id, owner_uuid, price, category, timestamp::TEXT , info
         FROM vacancy;
         """)
+   
 
 
 async def clear_database(conn: Union[Connection, Pool]):

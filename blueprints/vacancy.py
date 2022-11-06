@@ -28,7 +28,7 @@ async def add(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         #if await check(conn, r.get('address'), r.get('chaiId')) == True:
         if True == True:
-            await add_vacancy(conn, str(r.get('owner_uuid')), r.get('price'), r.get('category'), r.get('timestamp'), r.get('info'))
+            await add_vacancy(conn, str(r.get('owner_uuid')), r.get('price'), r.get('category'), r.get('info'))
             return empty(200)
         else:
            return empty(409, {'eror': check(conn, r.get('address'), r.get('chaiId'))})
@@ -71,7 +71,7 @@ async def edit_va(request: Request):
         # check permissions 
         #if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
         if await isCreated(conn, r.get('id')):
-            await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('timestamp'), r.get('info'))
+            await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('info'))
             return empty(200)
         else:
             return empty(409, {'error409': 'No permission to edit or no such vacancy'})
