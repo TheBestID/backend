@@ -20,24 +20,41 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS verify(
             address             TEXT        PRIMARY KEY,
+            chainid             INT         NOT NULL,
             hash_email          TEXT        NOT NULL,
             email_token         UUID        NOT NULL,
-            github_token        TEXT        NOT NULL
+            github_token        TEXT        NOT NULL,
+            time                TIMESTAMP   DEFAULT NOW()
         );
         ''')
     return True
 
 
-async def add_verify(conn: Connection, address: str, hash_email: bytes, email_token: UUID, github_token: bytes):
+async def add_verify(conn: Connection, address: str, chainId: int, hash_email: str, email_token: UUID,
+                     github_token: str):
     await conn.execute("""
-        INSERT INTO verify (address, hash_email, email_token, github_token)
-        VALUES ($1, $2, $3, $4)
-        """, address, hash_email, email_token, github_token)
+        INSERT INTO verify (address, chainid, hash_email, email_token, github_token)
+        VALUES ($1, $2, $3, $4, $5);
+        """, address, chainId, hash_email, email_token, github_token)
 
 
-async def check_verify(conn: Connection, address: str, hash_email: bytes, email_token: UUID, github_token: bytes):
-    await conn.execute("""
-        SELECT registered
-        FROM users
+async def check_verify(conn: Connection, address: str, chainId: int, hash_email: str, email_token: UUID,
+                       github_token: str):
+    data = await conn.fetchrow("""
+        SELECT hash_email, email_token, github_token, time
+        FROM verify
         WHERE address = $1 AND chainid = $2;
-        """, address, hash_email, email_token, github_token)
+        """, address, chainId)
+    if not data:
+        return False
+    if hash_email == data['hash_email'] and email_token == data['email_token'] and github_token == data['github_token']:
+        return True
+    return False
+
+
+async def del_verify(conn: Connection, address: str, chainId: int):
+    await conn.execute("""
+        DELETE
+        FROM verify
+        WHERE address = $1 AND chainid = $2;
+        """, address, chainId)
