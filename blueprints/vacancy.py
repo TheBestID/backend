@@ -65,16 +65,24 @@ async def get_preview_by_id(request: Request):
 @vacancy.post("/edit_vacancy")
 @openapi.body({"application/json": VacancyEdit}, required=True)
 async def edit_va(request: Request):
+    #claim sbt!
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        # check permissions 
-        #if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
-        #if await isCreated(conn, r.get('id')) and await isAllowed(conn, await get_uuid(conn,  r.get('address'), str(r.get('chainId'))), r.get('id')):
-        if await isCreated(conn, r.get('id')):
+        
+        uuid_sender = await get_uuid(conn, r.get('address'), str(r.get('chainId')))
+        if uuid_sender:
+            uuid_sender = str(uuid_sender)
+        else:
+            return empty(409, {'error409': 'No such registred user'})
+
+        if not await isCreated(conn, r.get('id')):
+             return empty(409, {'error409': 'No such vacancy'})
+
+        if await isAllowed(conn, uuid_sender, r.get('id')):
             await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('info'))
             return empty(200)
         else:
-            return empty(409, {'error409': 'No permission to edit or no such vacancy'})
+            return empty(409, {'error409': 'No permission to edit vacancy'})
 
 
 @vacancy.post("/delete_vacancy")
@@ -82,12 +90,23 @@ async def edit_va(request: Request):
 async def delete_va(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        #if await isAllowed(r.get('owner_uuid')) and await isCreated(conn, r.get('id')):
-        if await isCreated(conn, r.get('id')):
-            await delete_vacancy(conn, r.get('id'))
-            return empty(200)
+        
+        
+        uuid_sender = await get_uuid(conn, r.get('address'), str(r.get('chainId')))
+        if uuid_sender:
+            uuid_sender = str(uuid_sender)
         else:
-            return empty(409, {'error409': 'No permission to delete'})
+            return empty(409, {'error409': 'No such registred user'})
+
+        if not await isCreated(conn, r.get('id')):
+             return empty(409, {'error409': 'No such vacancy'})
+
+
+        if await isAllowed(conn, uuid_sender, r.get('id')):
+             await delete_vacancy(conn, r.get('id'))
+             return empty(200)
+        else:
+             return empty(409, {'error409': 'No permission to delete vacancy'})
             
 
 @vacancy.get("/clear_bd")

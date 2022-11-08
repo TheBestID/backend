@@ -123,11 +123,17 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str):
     :return:
     """
 
-    return (await conn.fetchrow("""
+    res = await conn.fetchrow("""
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId))['uuid']
+        """, address, chainId)
+    
+    if res:
+        return res.get('uuid')
+    
+    else:
+        return None
 
 # async def main():
 #     conn = await connect(host=host, user=username, password=password, database=database)

@@ -4,14 +4,23 @@ import time
 
 from asyncpg import Connection, Pool
 
+from database.users import get_uuid
 
-async def isAllowed(conn: Union[Connection, Pool], owner_uuid: UUID, id: int):
+
+
+
+async def isAllowed(conn: Union[Connection, Pool], sender_uuid: UUID, id: int):
+    # print(await conn.fetchrow("""
+    #     SELECT owner_uuid
+    #     FROM vacancy
+    #     WHERE id = $1;
+    #     """, id).get('owner_uuid'))
     #some work connected to chek can user create / delete vacancy
-    if str(owner_uuid) == str(await conn.fetchrow("""
+    if str(sender_uuid) == (await conn.fetchrow("""
         SELECT owner_uuid
         FROM vacancy
         WHERE id = $1;
-        """, id)):
+        """, id)).get('owner_uuid'):
         return True
 
     else:
