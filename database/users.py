@@ -28,10 +28,10 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     return True
 
 
-async def add_user(conn: Union[Connection, Pool], address: str, chainid: str, uuid: str):
+async def add_user(conn: Union[Connection, Pool], address: str, chainId: str, uuid: UUID):
     """
     :param conn:            Объект подключения к БД
-    :param chainid:
+    :param chainId:
     :param uuid:             Идентификатор sbt
     :param address:         Адрес кошелька
     :return:                Идентификатор пользователя
@@ -39,13 +39,13 @@ async def add_user(conn: Union[Connection, Pool], address: str, chainid: str, uu
     await conn.execute("""
         INSERT INTO users (address, chainid, uuid)
         VALUES ($1, $2, $3)
-        """, address, chainid, uuid)
+        """, address, chainId, uuid)
 
 
-async def reg_user(conn: Union[Connection, Pool], address: str, chainid: UUID):
+async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID):
     """
     :param conn:            Объект подключения к БД
-    :param chainid:
+    :param chainId:
     :param address:         Адрес кошелька
     :return:                Идентификатор пользователя
     """
@@ -53,10 +53,10 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainid: UUID):
         UPDATE users 
         SET registered = True
         WHERE address = $1 AND chainid = $2;
-        """, address, chainid)
+        """, address, chainId)
 
 
-async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
+async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
     """
     Проверяет наличие пользователя по кошельку
     :param conn:        Объект подключения к БД
@@ -72,6 +72,20 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
     if res:
         return res['registered']
     return False
+
+
+async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
+    """
+    :param conn:
+    :param address:
+    :param chainId:
+    :return:
+    """
+    return bool(await conn.fetchrow("""
+        SELECT uuid
+        FROM users
+        WHERE address = $1 AND chainid = $2;
+        """, address, chainId))
 
 
 async def get_database(conn: Union[Connection, Pool]) -> list:

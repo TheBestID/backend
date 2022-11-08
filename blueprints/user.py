@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+from eth_utils import to_checksum_address
+from eth_utils import to_hex
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
@@ -9,7 +11,12 @@ from database.users import check, get_database, clear_database, add_user, get_uu
 from database.users import create as create_users
 from database.usersinfo import create as create_usersinfo
 from database.usersinfo import get_info
-from openapi.user import UserAddress, UserAdd, UserCheck
+from database.verify import add_verify
+from openapi.user import UserCheck
+from bcrypt import hashpw, gensalt
+import bcrypt
+
+from utils import hashing, git_token
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -25,16 +32,33 @@ async def check_user(request: Request):
     return empty(409)
 
 
-@user.get("/get")
+@user.post("/get")
+@openapi.body({"application/json": UserCheck}, required=True)
 async def get_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await check(conn, request.json.get('address'), request.json.get('chainId')):
+        if await check(conn, request.json.get('address'), request.json.get('chainId')):
             return json({'error': 'User is not registred'}, 409)
 
         uuid = await get_uuid(conn, request.json.get('address'), request.json.get('chainId'))
         info = await get_info(conn, uuid)
 
         return json(dict(info))
+
+
+@user.post("/email")
+@openapi.body({"application/json": UserCheck}, required=True)
+async def email(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        if await check(conn, r.get('address'), r.get('chainId')):
+            return json({'error': 'Wallet is already registered'}, 409)
+        e_token = uuid4()
+        g_token = await git_token(r.get('githubCode'))
+        await send_email(r.get('email'), r.get('githubCode'), e_token=uuid4())
+        h_email = await hashing(r.get('email'))
+        h_g_token = await hashing(g_token)
+        await add_verify(conn, r.get('address'), h_email, e_token, h_g_token)
+        return json({"uid": 1})
 
 
 @user.post("/msg_params")
@@ -44,19 +68,22 @@ async def msg_params(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
-        uuid = uuid4().hex
+        uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
-    # функция MINT СК
-    address = ''
-    data: dict = request.app.config['contract'].functions.store(100).build_transaction(
+    url = Web3.toHex(b'url tester')
+    git = Web3.toHex(b'git_tester')
+    eml = Web3.toHex(b'email tester')
+    hsh = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')), uuid).transact()
+    print(hsh)
+    data: dict = request.app.config.get('contract').functions.store(100).build_transaction(
         {'nonce': request.app.config.get('web3').eth.get_transaction_count(
-            Web3.toChecksumAddress(request.json.get('address')))})
-    data['value'] = Web3.toHex(data['value'])
-    data['gas'] = Web3.toHex(data['gas'])
-    data['maxFeePerGas'] = Web3.toHex(data['maxFeePerGas'])
-    data['maxPriorityFeePerGas'] = Web3.toHex(data['maxPriorityFeePerGas'])
-    data['chainId'] = Web3.toHex(data['chainId'])
-    data['nonce'] = Web3.toHex(data['nonce'])
+            to_checksum_address(request.json.get('address')))})
+    data['value'] = to_hex(data['value'])
+    data['gas'] = to_hex(data['gas'])
+    data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
+    data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
+    data['chainId'] = to_hex(data['chainId'])
+    data['nonce'] = to_hex(data['nonce'])
     return json(data)
 
 

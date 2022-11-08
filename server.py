@@ -1,6 +1,8 @@
 from typing import Iterable
 
 from asyncpg import create_pool
+from eth_account import Account
+from eth_account.signers.local import LocalAccount
 from sanic import Sanic
 from web3 import Web3
 
@@ -17,10 +19,11 @@ app.config.HEALTH = False
 
 # app.blueprint(company)
 app.blueprint(user)
-
 app.blueprint(vacancy)
-
 app.blueprint(hacks)
+
+PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
+
 
 @app.before_server_start
 async def init(app1):
@@ -28,8 +31,10 @@ async def init(app1):
                                             max_size=1)
     # await create(app1.config['POOL'])
     app1.config['web3'] = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
-    app1.config['contract'] = app1.config['web3'].eth.contract(address="0x61Cd0c3044F291A2A7fe08596D36Efd799cb7092",
+    app1.config['contract'] = app1.config['web3'].eth.contract(address="0x675Cb077282d22eF8B25A02ed279B8fb50da7769",
                                                                abi=ABI)
+    app1.config['account']: LocalAccount = Account.from_key(PK)
+    app1.config['web3'].eth.default_account = app1.config['account'].address
 
 
 @app.before_server_stop
