@@ -1,6 +1,13 @@
 ABI = [
     {
         "inputs": [],
+        "name": "burn",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "stateMutability": "nonpayable",
         "type": "constructor"
     },
@@ -18,16 +25,98 @@ ABI = [
         "type": "event"
     },
     {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "github_hash",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes32",
+                        "name": "email_address_hash",
+                        "type": "bytes32"
+                    }
+                ],
+                "internalType": "struct SBT.PersonalDataHashed",
+                "name": "_soulData",
+                "type": "tuple"
+            }
+        ],
+        "name": "claim",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {
+                "indexed": False,
+                "internalType": "uint256",
+                "name": "_soul_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "Claim",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_soul_address",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_soul_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "mint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {
+                "indexed": False,
+                "internalType": "uint256",
+                "name": "_soul_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "Mint",
+        "type": "event"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {
+                "indexed": False,
+                "internalType": "uint256",
+                "name": "_soul_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "MintAchievement",
+        "type": "event"
+    },
+    {
         "anonymous": False,
         "inputs": [
             {
                 "indexed": False,
                 "internalType": "address",
-                "name": "_soul",
+                "name": "_new_address",
                 "type": "address"
             }
         ],
-        "name": "Mint",
+        "name": "SetAchevementsContractAddress",
         "type": "event"
     },
     {
@@ -42,19 +131,6 @@ ABI = [
         ],
         "name": "Update",
         "type": "event"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_soul_id_to_burn",
-                "type": "uint256"
-            }
-        ],
-        "name": "burn",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
     },
     {
         "inputs": [
@@ -88,15 +164,15 @@ ABI = [
             {
                 "components": [
                     {
+                        "internalType": "uint256",
+                        "name": "soul_id",
+                        "type": "uint256"
+                    },
+                    {
                         "components": [
                             {
                                 "internalType": "bytes32",
-                                "name": "url_hash",
-                                "type": "bytes32"
-                            },
-                            {
-                                "internalType": "bytes32",
-                                "name": "github_url_hash",
+                                "name": "github_hash",
                                 "type": "bytes32"
                             },
                             {
@@ -138,46 +214,6 @@ ABI = [
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_soul_address",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_soul_id",
-                "type": "uint256"
-            },
-            {
-                "components": [
-                    {
-                        "internalType": "string",
-                        "name": "url",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "github_url",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "email_address",
-                        "type": "string"
-                    }
-                ],
-                "internalType": "struct SBT.PersonalData",
-                "name": "_soulData",
-                "type": "tuple"
-            }
-        ],
-        "name": "mint",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "operator",
         "outputs": [
@@ -191,17 +227,14 @@ ABI = [
         "type": "function"
     },
     {
-        "inputs": [
+        "inputs": [],
+        "name": "verifyDataCorrectness",
+        "outputs": [
             {
                 "components": [
                     {
                         "internalType": "bytes32",
-                        "name": "url_hash",
-                        "type": "bytes32"
-                    },
-                    {
-                        "internalType": "bytes32",
-                        "name": "github_url_hash",
+                        "name": "github_hash",
                         "type": "bytes32"
                     },
                     {
@@ -211,46 +244,8 @@ ABI = [
                     }
                 ],
                 "internalType": "struct SBT.PersonalDataHashed",
-                "name": "_newSoulData",
-                "type": "tuple"
-            }
-        ],
-        "name": "update",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "components": [
-                    {
-                        "internalType": "string",
-                        "name": "url",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "github_url",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "email_address",
-                        "type": "string"
-                    }
-                ],
-                "internalType": "struct SBT.PersonalData",
-                "name": "_dataToVerify",
-                "type": "tuple"
-            }
-        ],
-        "name": "verifyDataCorrectness",
-        "outputs": [
-            {
-                "internalType": "bool",
                 "name": "",
-                "type": "bool"
+                "type": "tuple"
             }
         ],
         "stateMutability": "view",

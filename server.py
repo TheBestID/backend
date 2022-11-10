@@ -31,7 +31,7 @@ async def init(app1):
                                             max_size=1)
     # await create(app1.config['POOL'])
     app1.config['web3'] = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
-    app1.config['contract'] = app1.config['web3'].eth.contract(address="0x675Cb077282d22eF8B25A02ed279B8fb50da7769",
+    app1.config['contract'] = app1.config['web3'].eth.contract(address="0x912C9ded9e44BB1aD308560CD1449e28c7735d63",
                                                                abi=ABI)
     app1.config['account']: LocalAccount = Account.from_key(PK)
     app1.config['web3'].eth.default_account = app1.config['account'].address

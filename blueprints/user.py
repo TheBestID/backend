@@ -10,7 +10,7 @@ from database.users import check, get_database, clear_database, add_user, get_uu
 from database.users import create as create_users
 from database.usersinfo import create as create_usersinfo
 from database.usersinfo import get_info
-from database.verify import add_verify, check_verify, del_verify
+from database.verify import add_verify, check_verify, del_verify, get_verify
 from database.verify import create as create_verify
 from openapi.user import UserCheck
 from utils import hashing, git_token
@@ -73,14 +73,15 @@ async def msg_params(request: Request):
             return json({'error': 'Verification error'}, 408)
         uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
-    tx = request.app.config.get('contract').functions.mint(uuid.hex).build_transaction(
+    tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
+                                                           uuid.int).build_transaction(
         {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
     stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
     txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
+    w3.eth.wait_for_transaction_receipt(txHash)
 
-    data = request.app.config.get('contract').functions.claim(to_checksum_address(r.get('address')), uuid,
-                                                              [r.get('hash_email'),
-                                                               r.get('github_token')]).build_transaction(
+    data = request.app.config.get('contract').functions.claim(
+        [r.get('hash_email'), r.get('github_token')]).build_transaction(
         {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address')))})
     data['value'] = to_hex(data['value'])
     data['gas'] = to_hex(data['gas'])
@@ -128,6 +129,12 @@ async def add(request: Request):
 async def get_bd(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         return json(list(map(dict, await get_database(conn))))
+
+
+@user.get("/get_bd_verify")
+async def get_bd_verify(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        return json(list(map(dict, await get_verify(conn))))
 
 
 @user.get("/clear_bd")

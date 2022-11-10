@@ -85,7 +85,7 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId))
+        """, address, str(chainId)))
 
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
