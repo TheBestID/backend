@@ -12,7 +12,7 @@ from blueprints.user import user
 from blueprints.vacancy import vacancy
 from blueprints.hacks import hacks
 from config import host, password, database, username
-from smartcontracts.abi import ABI
+from smartcontracts.abi import ABI, achivement_ABI
 
 app = Sanic("SoulID")
 
@@ -35,6 +35,8 @@ async def init(app1):
     app1.config['web3'] = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
     app1.config['contract'] = app1.config['web3'].eth.contract(address="0x912C9ded9e44BB1aD308560CD1449e28c7735d63",
                                                                abi=ABI)
+    app1.config['contract_ach'] = app1.config['web3'].eth.contract(address="0xDf306d88bE9586253eb8d4F42B818ABeD62e6175",
+                                                               abi=achivement_ABI)
     app1.config['account']: LocalAccount = Account.from_key(PK)
     app1.config['web3'].eth.default_account = app1.config['account'].address
     app1.config['email'] = "souldev.web3@gmail.com"

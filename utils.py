@@ -8,7 +8,7 @@ import aiosmtplib
 from aiosmtplib import send, SMTP
 from bcrypt import hashpw, gensalt
 from web3 import Web3
-
+from server import PK
 
 from aleph_client.asynchronous import get_posts, create_store, create_post
 from aleph_client.chains.ethereum import ETHAccount
@@ -45,12 +45,14 @@ def create_dump(username:str, description: str, isImage: bool, attributes=[], im
                         
 
 async def loadToIpfs(data):
+    #return 'IPFS relax but still work ^_^'
     with open('key.txt', 'r') as file:
         key = file.read()
         acc = ETHAccount(key)
         hash = await create_store(file_content=bytes(data, 'utf-8') , account=acc, storage_engine="ipfs")
-        #print(hash.content.item_hash)
+        print(hash.content.item_hash)
         return hash.content.item_hash
+        
 
 
 def getFromIpfs(cid):

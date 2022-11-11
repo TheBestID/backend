@@ -27,3 +27,4 @@ class UserEmailR200:
 class UserCheck:
     address: str
     chainId: int
+

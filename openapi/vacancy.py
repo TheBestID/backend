@@ -47,3 +47,10 @@ class Delete:
     id: int
     address: str
     chainId: int
+
+
+class Confirm:
+    id: int
+    address: str
+    chainId: int
+    hash: str 

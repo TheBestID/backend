@@ -1,14 +1,20 @@
-from uuid import uuid4
-
+from uuid import uuid4, UUID
+import web3 
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
+
+
+from eth_utils import to_checksum_address
+from eth_utils import to_hex
 
 from database.vacancy import create, clear_database, get_database, add_vacancy, edit_vacancy, isAllowed, isCreated
 from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy
 from database.users  import check, get_uuid
 
-from openapi.vacancy import VacancyTemplate, VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit
+from openapi.vacancy import VacancyTemplate, VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit, Confirm
+
+from smartcontracts.contracts_id import achivement_id, url
 
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 
@@ -25,9 +31,20 @@ async def get_bd(request: Request):
 # @openapi.response(409, description='Wallet is already registered')
 async def add(request: Request):
     r = request.json
+    w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address'), str(r.get('chainId'))) == True:
-            await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), str(r.get('chainId')))), r.get('price'), r.get('category'), r.get('info'))
+        if await check(conn, r.get('address'), str(r.get('chainId'))):
+            ach_uuid = uuid4()
+            tx = request.app.config.get('contract_ach').functions.mint([ ach_uuid.int, web3.constants.ADDRESS_ZERO, request.app.config['account'].address, False, 'some info']).build_transaction(
+            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
+            'from': request.app.config['account'].address
+            })
+
+            stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
+            txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
+            #w3.eth.wait_for_transaction_receipt(txHash)
+
+            await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), str(r.get('chainId')))), r.get('price'), r.get('category'), r.get('info'), str(ach_uuid))
             return empty(200)
         else:
            return empty(409, {'eror': 'No permissions' })
@@ -81,6 +98,18 @@ async def edit_va(request: Request):
             return empty(200)
         else:
             return empty(409, {'error409': 'No permission to edit vacancy'})
+
+
+@vacancy.post("/confirm_vacancy")
+@openapi.body({"application/json": Confirm}, required=True)
+async def confirm_vacancy(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        if r.get('hash') != '':
+            return empty(200)
+        else:
+            delete_vacancy(r.get('id'))
+        pass
 
 
 @vacancy.post("/delete_vacancy")

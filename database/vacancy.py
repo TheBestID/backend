@@ -26,6 +26,14 @@ async def addSBTvac():
     pass
 
 
+async def getUuidByid(conn: Union[Connection, Pool], id: int):
+    return await conn.fetchrow("""
+        SELECT ach_uuid
+        FROM vacancy
+        WHERE id = $1;
+        """, id)
+
+
 async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
 
     if (await conn.fetchrow("""
@@ -44,6 +52,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS vacancy(
             id                  SERIAL      PRIMARY KEY,
+            ach_uuid            TEXT        DEFAULT '',
             owner_uuid          TEXT        DEFAULT '',
             price               INT         NOT NULL,
             category            TEXT        DEFAULT '',
@@ -58,14 +67,14 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
 
 # what is the defualt type of timestamp?
-async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str):
-    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}])
+async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str, ach_uuid: str):
+    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}, {'ach_uuid':ach_uuid}])
     cid = await loadToIpfs(data)
     
     await conn.execute("""
-        INSERT INTO vacancy (owner_uuid, price, category, info, ipfs_cid)
-        VALUES ($1, $2, $3, $4, $5);
-        """, owner_uuid, price, category, info, cid)
+        INSERT INTO vacancy (owner_uuid, ach_uuid, price, category, info, ipfs_cid)
+        VALUES ($1, $2, $3, $4, $5, $6);
+        """, owner_uuid, ach_uuid, price, category, info, cid)
     
     
 
@@ -112,6 +121,8 @@ async def get_vacancy(conn: Union[Connection, Pool], id: int):
     data = getFromIpfs(cid)
     return json({'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'), 'category': data.get('attributes')[2].get('category'), 'info': data.get('description') })
 
+
+#change create_dump: add ach_uuid!!!
 async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, info: str, owner_uuid: str):
     data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}])
     cid = await loadToIpfs(data)
@@ -127,7 +138,7 @@ async def delete_vacancy(conn: Union[Connection, Pool], id: int):
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
     return await conn.fetch("""
-        SELECT id, owner_uuid, price, category, timestamp::TEXT , info, ipfs_cid
+        SELECT id, owner_uuid, ach_uuid, price, category, timestamp::TEXT , info, ipfs_cid
         FROM vacancy;
         """)
    
