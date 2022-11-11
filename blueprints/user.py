@@ -52,8 +52,10 @@ async def email(request: Request):
             return json({'error': 'Github error'}, 408)
         h_email = await hashing(r.get('email'))
         h_g_token = await hashing(g_token)
-        await send_email(r.get('email'), h_email, h_g_token, e_token, request.app.config.get('email'),
-                         request.app.config.get('e_pass'))
+        em = await send_email(r.get('email'), h_email, h_g_token, e_token, request.app.config.get('email'),
+                              request.app.config.get('e_pass'))
+        if not em:
+            return json({'error': 'Email error'}, 411)
         await add_verify(conn, r.get('address'), r.get('chainId'), h_email, e_token, h_g_token)
         return json({"uid": 1})
 

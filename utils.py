@@ -26,10 +26,13 @@ async def send_email(email, hash_email, github_token, email_token: UUID, e_from,
     message["Subject"] = "Verification!"
     message.set_content(
         f"To pass verification, follow the link:\nhttp://localhost:3000/email-success?code={github_token}&email_token={email_token.hex}&email={hash_email}")
-
-    async with SMTP(hostname="smtp.gmail.com", port=465, use_tls=True, username=e_from, password=e_pass) as smtp:
-        await smtp.send_message(message)
-
+    try:
+        async with SMTP(hostname="smtp.gmail.com", port=465, use_tls=True, username=e_from, password=e_pass) as smtp:
+            await smtp.send_message(message)
+        return True
+    except:
+        return False
 
 # asyncio.get_event_loop().run_until_complete(
-#     send_email('agibalov129@gmail.com', 'hash_email111', 'github_token111', uuid.uuid4()))
+#     send_email('agibalov1294@gmail.com', 'hash_email111', 'github_token111', uuid.uuid4(), "souldev.web3@gmail.com",
+#                "zzolvnzkmvkywerq"))
