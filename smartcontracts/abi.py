@@ -12,10 +12,10 @@ ABI = [
         "type": "constructor"
     },
     {
-        "anonymous": False,
+        "anonymous": 'false',
         "inputs": [
             {
-                "indexed": False,
+                "indexed": 'false',
                 "internalType": "uint256",
                 "name": "_soul_id_to_burn",
                 "type": "uint256"
@@ -50,10 +50,10 @@ ABI = [
         "type": "function"
     },
     {
-        "anonymous": False,
+        "anonymous": 'false',
         "inputs": [
             {
-                "indexed": False,
+                "indexed": 'false',
                 "internalType": "uint256",
                 "name": "_soul_id",
                 "type": "uint256"
@@ -81,10 +81,10 @@ ABI = [
         "type": "function"
     },
     {
-        "anonymous": False,
+        "anonymous": 'false',
         "inputs": [
             {
-                "indexed": False,
+                "indexed": 'false',
                 "internalType": "uint256",
                 "name": "_soul_id",
                 "type": "uint256"
@@ -94,10 +94,10 @@ ABI = [
         "type": "event"
     },
     {
-        "anonymous": False,
+        "anonymous": 'false',
         "inputs": [
             {
-                "indexed": False,
+                "indexed": 'false',
                 "internalType": "uint256",
                 "name": "_soul_id",
                 "type": "uint256"
@@ -107,10 +107,10 @@ ABI = [
         "type": "event"
     },
     {
-        "anonymous": False,
+        "anonymous": 'false',
         "inputs": [
             {
-                "indexed": False,
+                "indexed": 'false',
                 "internalType": "address",
                 "name": "_new_address",
                 "type": "address"
@@ -120,10 +120,10 @@ ABI = [
         "type": "event"
     },
     {
-        "anonymous": False,
+        "anonymous": 'false',
         "inputs": [
             {
-                "indexed": False,
+                "indexed": 'false',
                 "internalType": "uint256",
                 "name": "_soul_id_to_update",
                 "type": "uint256"
@@ -252,3 +252,255 @@ ABI = [
         "type": "function"
     }
 ]
+
+
+achivement_ABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": 'false',
+		"inputs": [
+			{
+				"indexed": 'false',
+				"internalType": "uint256",
+				"name": "achievement_id",
+				"type": "uint256"
+			}
+		],
+		"name": "Accept",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_achievementId",
+				"type": "uint256"
+			}
+		],
+		"name": "acceptAchievement",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_achievementId",
+				"type": "uint256"
+			}
+		],
+		"name": "burn",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": 'false',
+		"inputs": [
+			{
+				"indexed": 'false',
+				"internalType": "uint256",
+				"name": "achievement_id",
+				"type": "uint256"
+			}
+		],
+		"name": "Burn",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "achievement_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "issuer",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "is_achievement_accepted",
+						"type": "bool"
+					},
+					{
+						"internalType": "string",
+						"name": "data_address",
+						"type": "string"
+					}
+				],
+				"internalType": "struct SBT_achievement.Achievement",
+				"name": "_achievementData",
+				"type": "tuple"
+			}
+		],
+		"name": "mint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": 'false',
+		"inputs": [
+			{
+				"indexed": 'false',
+				"internalType": "uint256",
+				"name": "achievement_id",
+				"type": "uint256"
+			}
+		],
+		"name": "Mint",
+		"type": "event"
+	},
+	{
+		"anonymous": 'false',
+		"inputs": [
+			{
+				"indexed": 'false',
+				"internalType": "uint256",
+				"name": "achievement_id",
+				"type": "uint256"
+			}
+		],
+		"name": "Update",
+		"type": "event"
+	},
+	{
+		"anonymous": 'false',
+		"inputs": [
+			{
+				"indexed": 'false',
+				"internalType": "uint256",
+				"name": "achievement_id",
+				"type": "uint256"
+			}
+		],
+		"name": "Verify",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_achievementId",
+				"type": "uint256"
+			}
+		],
+		"name": "getAchievementInfo",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "achievement_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "issuer",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "is_achievement_accepted",
+						"type": "bool"
+					},
+					{
+						"internalType": "string",
+						"name": "data_address",
+						"type": "string"
+					}
+				],
+				"internalType": "struct SBT_achievement.Achievement",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_issuer",
+				"type": "address"
+			}
+		],
+		"name": "getAchievementsOfIssuer",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "getAchievementsOfOwner",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "kSBTContract",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "operator",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+
+#[1, 0x41c9288b78090946db0fd6d32D8cB1fEfe18134B, 0x41c9288b78090946db0fd6d32D8cB1fEfe18134B, 'false','url']

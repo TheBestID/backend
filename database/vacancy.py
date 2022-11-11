@@ -61,7 +61,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str):
     data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}])
     cid = await loadToIpfs(data)
-
+    
     await conn.execute("""
         INSERT INTO vacancy (owner_uuid, price, category, info, ipfs_cid)
         VALUES ($1, $2, $3, $4, $5);
@@ -113,7 +113,7 @@ async def get_vacancy(conn: Union[Connection, Pool], id: int):
     return json({'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'), 'category': data.get('attributes')[2].get('category'), 'info': data.get('description') })
 
 async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, info: str, owner_uuid: str):
-    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'prcie': price}])
+    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}])
     cid = await loadToIpfs(data)
     await conn.fetch("""
         UPDATE vacancy SET price = $1, category = $2, info = $3, ipfs_cid = $5 WHERE id = $4;

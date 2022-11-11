@@ -40,7 +40,6 @@ async def get_previews_sortby_one(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
         return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'), r.get('top_number'), r.get('in_asc')))))
-    return empty(409)
 
 
 @vacancy.post("/get_previews_sortby_two")
@@ -49,7 +48,7 @@ async def get_previews_sortby_two(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
         return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type1'), r.get('sort_value1'), r.get('sort_value2'), r.get('offset_number'), r.get('top_number'), r.get('in_asc')))))
-    return empty(409)
+
 
 
 @vacancy.post("/get_vacancy_by_id")
@@ -59,7 +58,6 @@ async def get_preview_by_id(request: Request):
         r = request.json
         if await isCreated(conn, r.get('id')):
             return await get_vacancy(conn, r.get('id'))
-            #return json(list(map(dict, await get_vacancy(conn,   r.get('id')))))
     return empty(409, {'error': 'no vacancy with such id'})
     
 
@@ -69,7 +67,6 @@ async def edit_va(request: Request):
     #claim sbt!
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        
         uuid_sender = await get_uuid(conn, r.get('address'), str(r.get('chainId')))
         if uuid_sender:
             uuid_sender = str(uuid_sender)
@@ -91,8 +88,6 @@ async def edit_va(request: Request):
 async def delete_va(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        
-        
         uuid_sender = await get_uuid(conn, r.get('address'), str(r.get('chainId')))
         if uuid_sender:
             uuid_sender = str(uuid_sender)

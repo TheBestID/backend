@@ -59,3 +59,10 @@ async def get_table_userinfo(conn: Connection):
         SELECT address, chainid, hash_email, email_token::TEXT, github_token, time::TEXT
         FROM userinfo;
         """)
+
+
+async def add_user_to_table(conn: Connection, address: str, chainId: int, uuid: int):
+    await conn.execute("""
+        INSERT INTO users (address, chainid, uuid)
+        VALUES ($1, $2, $3)
+        """, address, int(chainId), uuid)

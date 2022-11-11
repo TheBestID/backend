@@ -19,7 +19,7 @@ async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool
             address             TEXT        PRIMARY KEY,
             chainid             INT         NOT NULL,
             uuid                UUID        NOT NULL,
-            registered          BOOL        DEFAULT FALSE
+            registered          BOOL        DEFAULT False
         );
         ''')
     return True
