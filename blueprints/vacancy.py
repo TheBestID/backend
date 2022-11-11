@@ -58,7 +58,8 @@ async def get_preview_by_id(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
         if await isCreated(conn, r.get('id')):
-            return json(list(map(dict, await get_vacancy(conn,   r.get('id')))))
+            return await get_vacancy(conn, r.get('id'))
+            #return json(list(map(dict, await get_vacancy(conn,   r.get('id')))))
     return empty(409, {'error': 'no vacancy with such id'})
     
 
@@ -79,7 +80,7 @@ async def edit_va(request: Request):
              return empty(409, {'error409': 'No such vacancy'})
 
         if await isAllowed(conn, uuid_sender, r.get('id')):
-            await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('info'))
+            await edit_vacancy(conn, r.get('id'), r.get('price'), r.get('category'), r.get('info'), uuid_sender)
             return empty(200)
         else:
             return empty(409, {'error409': 'No permission to edit vacancy'})

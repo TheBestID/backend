@@ -1,6 +1,11 @@
+import asyncio
+import uuid
 from asyncio import get_event_loop
 import asyncio
-
+from email.message import EmailMessage
+from uuid import UUID
+import aiosmtplib
+from aiosmtplib import send, SMTP
 from bcrypt import hashpw, gensalt
 from web3 import Web3
 
@@ -44,7 +49,7 @@ async def loadToIpfs(data):
         key = file.read()
         acc = ETHAccount(key)
         hash = await create_store(file_content=bytes(data, 'utf-8') , account=acc, storage_engine="ipfs")
-        print(hash.content.item_hash)
+        #print(hash.content.item_hash)
         return hash.content.item_hash
 
 
@@ -53,19 +58,28 @@ def getFromIpfs(cid):
     return json.loads(r.content)
     
 
+    
+async def send_email(email, hash_email, github_token, email_token: UUID, e_from, e_pass):
+    message = EmailMessage()
+    message["From"] = e_from
+    message["To"] = email
+    message["Subject"] = "Verification!"
+    message.set_content(
+        f"To pass verification, follow the link:\nhttp://localhost:3000/email-success?code={github_token}&email_token={email_token.hex}&email={hash_email}")
+    try:
+        async with SMTP(hostname="smtp.gmail.com", port=465, use_tls=True, username=e_from, password=e_pass) as smtp:
+            await smtp.send_message(message)
+        return True
+    except:
+        return False
+
+# asyncio.get_event_loop().run_until_complete(
+#     send_email('agibalov1294@gmail.com', 'hash_email111', 'github_token111', uuid.uuid4(), "souldev.web3@gmail.com",
+#                "zzolvnzkmvkywerq"))
+
+
+
 if __name__ == "__main__":
     print('QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi' == 'QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi')
 
     data = create_dump('username', 'my description', False, attributes=[{'some info': 'my info'}])
-    
-    #loop = asyncio.get_event_loop().run_until_complete(updateData(json.dumps({'info':'some info'}), old_sid='QmYgtCom5GnUXCbeLwTKyxhxkZb3DZKRe6wBnzDFSU6ZnX'))
-    #getFromIpfs('QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi')
-    
-    #loop = asyncio.get_event_loop().run_until_complete(getPost(refs='QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi'))
-    
-    #loop = asyncio.get_event_loop().run_until_complete(loadToIpfs(json.dumps({'some info': 'old info'})))
-#     #loop = asyncio.get_event_loop().run_until_complete(get_from_ipfs(test))
-
-#     loop = asyncio.get_event_loop().run_until_complete(load_to_ipfs(data))
-
-#     #get_from_ipfs()

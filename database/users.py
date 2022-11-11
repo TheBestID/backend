@@ -4,10 +4,7 @@ from uuid import UUID
 from asyncpg import Connection, Pool
 
 
-# from config import host, username, password, database
-
-
-async def create(conn: Union[Connection, Pool], clear=False) -> bool:
+async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool:
     """
     Создает таблицу users
     :param conn:    Объект подключения к БД
@@ -20,7 +17,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS users(
             address             TEXT        PRIMARY KEY,
-            chainid             TEXT        NOT NULL,
+            chainid             INT         NOT NULL,
             uuid                UUID        NOT NULL,
             registered          BOOL        DEFAULT FALSE
         );
@@ -28,47 +25,57 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     return True
 
 
+async def get_table_users(conn: Union[Connection, Pool]) -> list:
+    """
+    :param conn:
+    :return:
+    """
+    return await conn.fetch("""
+        SELECT address, chainid, registered, uuid::TEXT
+        FROM users;
+        """)
+
+
 async def add_user(conn: Union[Connection, Pool], address: str, chainId: str, uuid: UUID):
     """
-    :param conn:            Объект подключения к БД
+    :param conn:
     :param chainId:
-    :param uuid:             Идентификатор sbt
-    :param address:         Адрес кошелька
-    :return:                Идентификатор пользователя
+    :param uuid:
+    :param address:
+    :return:
     """
     await conn.execute("""
         INSERT INTO users (address, chainid, uuid)
         VALUES ($1, $2, $3)
-        """, address, chainId, uuid)
+        """, address, int(chainId), uuid)
 
 
 async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID):
     """
-    :param conn:            Объект подключения к БД
+    :param conn:
     :param chainId:
-    :param address:         Адрес кошелька
-    :return:                Идентификатор пользователя
+    :param address:
+    :return:
     """
     await conn.execute("""
         UPDATE users 
         SET registered = True
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId)
+        """, address, int(chainId))
 
 
 async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
     """
-    Проверяет наличие пользователя по кошельку
-    :param conn:        Объект подключения к БД
-    :param address:     Адрес кошелька
-    :param chainId:     ID сети
-    :return:            True - найден, иначе False
+    :param conn:
+    :param address:
+    :param chainId:
+    :return:
     """
     res = await conn.fetchrow("""
         SELECT registered
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId)
+        """, address, int(chainId))
     if res:
         return res['registered']
     return False
@@ -85,55 +92,35 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, str(chainId)))
+        """, address, int(chainId)))
 
 
-async def get_database(conn: Union[Connection, Pool]) -> list:
+async def clear_users(conn: Union[Connection, Pool]):
     """
-    Возвращает бд
-    :param conn:        Объект подключения к БД
-    :return:
-    """
-    return await conn.fetch("""
-        SELECT address, chainid, registered, uuid::TEXT
-        FROM users;
-        """)
-
-
-async def clear_database(conn: Union[Connection, Pool]):
-    """
-    :param conn:        Объект подключения к БД
+    :param conn:
     :return:
     """
     await conn.execute("""
         DELETE FROM users;
-        """)
-    await conn.execute("""
-        DELETE FROM usersinfo;
         """)
     return
 
 
 async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str):
     """
-    Возвращает uuid по адресу с конкретным chain_id
     :param chainId:
     :param address:
-    :param conn:        Объект подключения к БД
+    :param conn:
     :return:
     """
-
     res = await conn.fetchrow("""
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId)
-    
+        """, address, int(chainId))
     if res:
         return res.get('uuid')
-    
-    else:
-        return None
+    return None
 
 # async def main():
 #     conn = await connect(host=host, user=username, password=password, database=database)

@@ -1,21 +1,16 @@
 from typing import Union
 from uuid import UUID
-import time
-
+from sanic.response import json
 from asyncpg import Connection, Pool
 
 from database.users import get_uuid
+from utils import create_dump, loadToIpfs, getFromIpfs
 
 
+prefix = 'https://ipfs.io/ipfs/'
 
 
 async def isAllowed(conn: Union[Connection, Pool], sender_uuid: UUID, id: int):
-    # print(await conn.fetchrow("""
-    #     SELECT owner_uuid
-    #     FROM vacancy
-    #     WHERE id = $1;
-    #     """, id).get('owner_uuid'))
-    #some work connected to chek can user create / delete vacancy
     if str(sender_uuid) == (await conn.fetchrow("""
         SELECT owner_uuid
         FROM vacancy
@@ -30,11 +25,9 @@ async def addSBTvac():
     #some work to 
     pass
 
+
 async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
-    """
-    Проверяет наличие вакансии
-    """
-    
+
     if (await conn.fetchrow("""
         SELECT id
         FROM vacancy
@@ -46,16 +39,8 @@ async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
 
 
 async def create(conn: Union[Connection, Pool], clear=False) -> bool:
-    """
-    Создает таблицу vacancy
-
-    :param conn:    Объект подключения к БД
-    :param clear:   If True -> очистить таблицу
-    :return:
-    """
     if clear:
         await conn.execute('DROP TABLE IF EXISTS vacancy')
-
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS vacancy(
             id                  SERIAL      PRIMARY KEY,
@@ -63,7 +48,8 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
             price               INT         NOT NULL,
             category            TEXT        DEFAULT '',
             timestamp           TIMESTAMP   DEFAULT NOW(),
-            info                TEXT        NOT NULL
+            info                TEXT        NOT NULL,
+            ipfs_cid            TEXT        NOT NULL
             
         );
         ''')
@@ -73,10 +59,15 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
 # what is the defualt type of timestamp?
 async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str):
+    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}])
+    cid = await loadToIpfs(data)
+
     await conn.execute("""
-        INSERT INTO vacancy (owner_uuid, price, category, info)
-        VALUES ($1, $2, $3, $4);
-        """, owner_uuid, price, category, info)
+        INSERT INTO vacancy (owner_uuid, price, category, info, ipfs_cid)
+        VALUES ($1, $2, $3, $4, $5);
+        """, owner_uuid, price, category, info, cid)
+    
+    
 
 
 async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int,  top_number: int, in_asc: bool) -> list:
@@ -113,17 +104,20 @@ async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str
     #         FROM vacancy WHERE $1 = $2 ORDER BY $3 DESC LIMIT $4 OFFSET $5 ROW;
     #         """, sort_type, sort_value, sort_value_int, top_number, offset_number)
 
-async def get_vacancy(conn: Union[Connection, Pool], id: int) -> list:
-    return await conn.fetch("""
-        SELECT owner_uuid, price, category, timestamp::TEXT, info
+async def get_vacancy(conn: Union[Connection, Pool], id: int):
+    cid = (await conn.fetchrow("""
+        SELECT ipfs_cid
         FROM vacancy WHERE id = $1;
-        """, id)
+        """, id)).get('ipfs_cid')
+    data = getFromIpfs(cid)
+    return json({'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'), 'category': data.get('attributes')[2].get('category'), 'info': data.get('description') })
 
-
-async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, info: str):
+async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, info: str, owner_uuid: str):
+    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'prcie': price}])
+    cid = await loadToIpfs(data)
     await conn.fetch("""
-        UPDATE vacancy SET price = $1, category = $2, info = $3 WHERE id = $4;
-    """, price, category, info, id)
+        UPDATE vacancy SET price = $1, category = $2, info = $3, ipfs_cid = $5 WHERE id = $4;
+    """, price, category, info, id, cid)
 
 
 async def delete_vacancy(conn: Union[Connection, Pool], id: int):
@@ -133,7 +127,7 @@ async def delete_vacancy(conn: Union[Connection, Pool], id: int):
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
     return await conn.fetch("""
-        SELECT id, owner_uuid, price, category, timestamp::TEXT , info
+        SELECT id, owner_uuid, price, category, timestamp::TEXT , info, ipfs_cid
         FROM vacancy;
         """)
    

@@ -6,6 +6,7 @@ from eth_account.signers.local import LocalAccount
 from sanic import Sanic
 from web3 import Web3
 
+from blueprints.admin import admin
 # from blueprints.company import company
 from blueprints.user import user
 from blueprints.vacancy import vacancy
@@ -21,6 +22,7 @@ app.config.HEALTH = False
 app.blueprint(user)
 app.blueprint(vacancy)
 app.blueprint(hacks)
+app.blueprint(admin)
 
 PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
 
@@ -35,6 +37,8 @@ async def init(app1):
                                                                abi=ABI)
     app1.config['account']: LocalAccount = Account.from_key(PK)
     app1.config['web3'].eth.default_account = app1.config['account'].address
+    app1.config['email'] = "souldev.web3@gmail.com"
+    app1.config['e_pass'] = "zzolvnzkmvkywerq"
 
 
 @app.before_server_stop
