@@ -7,7 +7,7 @@ from asyncpg import Connection, Pool
 # from config import host, username, password, database
 
 
-async def create(conn: Union[Connection, Pool], clear=False) -> bool:
+async def create_table_verify(conn: Union[Connection, Pool], clear=False) -> bool:
     """
     Создает таблицу users
     :param conn:    Объект подключения к БД
@@ -30,6 +30,13 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     return True
 
 
+async def get_table_verify(conn: Connection):
+    return await conn.fetch("""
+        SELECT address, chainid, hash_email, email_token::TEXT, github_token, time::TEXT
+        FROM verify;
+        """)
+
+
 async def add_verify(conn: Connection, address: str, chainId: int, hash_email: str, email_token: UUID,
                      github_token: str):
     await conn.execute("""
@@ -45,7 +52,6 @@ async def check_verify(conn: Connection, address: str, chainId: int, hash_email:
         FROM verify
         WHERE address = $1 AND chainid = $2;
         """, address, int(chainId))
-    print(data)
     if not data:
         return False
     if hash_email == data['hash_email'] and email_token == data['email_token'] and github_token == data['github_token']:
@@ -58,11 +64,4 @@ async def del_verify(conn: Connection, address: str, chainId: int):
         DELETE
         FROM verify
         WHERE address = $1 AND chainid = $2;
-        """, address, chainId)
-
-
-async def get_verify(conn: Connection):
-    return await conn.fetch("""
-        SELECT address, chainid, hash_email, email_token::TEXT, github_token
-        FROM verify;
-        """)
+        """, address, int(chainId))

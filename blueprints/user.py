@@ -6,14 +6,11 @@ from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
-from database.users import check, get_database, clear_database, add_user, get_uuid, reg_user, checkReg
-from database.users import create as create_users
-from database.usersinfo import create as create_usersinfo
-from database.usersinfo import get_info
-from database.verify import add_verify, check_verify, del_verify, get_verify
-from database.verify import create as create_verify
+from database.userinfo import get_info
+from database.users import check, add_user, get_uuid, reg_user, checkReg
+from database.verify import add_verify, check_verify, del_verify
 from openapi.user import UserCheck
-from utils import hashing, git_token
+from utils import hashing, git_token, send_email
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -53,9 +50,10 @@ async def email(request: Request):
         g_token = await git_token(r.get('githubCode'))
         if not g_token:
             return json({'error': 'Github error'}, 408)
-        # await send_email(r.get('email'), r.get('githubCode'), e_token)
         h_email = await hashing(r.get('email'))
         h_g_token = await hashing(g_token)
+        await send_email(r.get('email'), h_email, h_g_token, e_token, request.app.config.get('email'),
+                         request.app.config.get('e_pass'))
         await add_verify(conn, r.get('address'), r.get('chainId'), h_email, e_token, h_g_token)
         return json({"uid": 1})
 
@@ -106,50 +104,3 @@ async def add(request: Request):
         await reg_user(conn, r.get('address'), r.get('chainId'))
         await del_verify(conn, r.get('address'), r.get('chainId'))
     return json({"uid": 1})
-
-
-# @user.post("/email")
-# @openapi.body({"application/json": UserEmail}, required=True)
-# @openapi.response(200, {"application/json": UserEmailR200}, 'OK')
-# @openapi.response(409, description="Wallet isn't registered")
-# async def add_email(request: Request):
-#     r = request.json
-#     async with request.app.config.get('POOL').acquire() as conn:
-#         res = await check_github(conn, request.json.get('address'))
-#         if not res:
-#             return json({'error': "Wallet isn't registered"}, 409)
-#         await insert_email(conn, r.get('email'), r.get('address'))
-#
-#         sbt = await send_data({"uid": res[0], "github": res[1], "email": r.get('email'),
-#                                "address": r.get('address')})  # получение sbt от смарт-контракта
-#     return json({'sbt': sbt})
-
-
-@user.get("/get_bd")
-async def get_bd(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        return json(list(map(dict, await get_database(conn))))
-
-
-@user.get("/get_bd_verify")
-async def get_bd_verify(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        return json(list(map(dict, await get_verify(conn))))
-
-
-@user.get("/clear_bd")
-async def clear_(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        await create_usersinfo(conn, True)
-        await create_users(conn, True)
-        await create_verify(conn, True)
-        return empty()
-
-
-@user.get("/create_db")
-async def create_db(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        await create_usersinfo(conn)
-        await create_users(conn)
-        await create_verify(conn)
-        return empty()
