@@ -14,8 +14,6 @@ from database.users  import check, get_uuid
 
 from openapi.vacancy import VacancyTemplate, VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit, Confirm
 
-from smartcontracts.contracts_id import achivement_id, url
-
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 
 @vacancy.get("/get_bd")
