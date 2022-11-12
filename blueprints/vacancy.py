@@ -14,8 +14,6 @@ from database.users  import check, get_uuid
 
 from openapi.vacancy import VacancyTemplate, VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit, Confirm
 
-from smartcontracts.contracts_id import achivement_id, url
-
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 
 @vacancy.get("/get_bd")
@@ -35,9 +33,10 @@ async def add(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), str(r.get('chainId'))):
             ach_uuid = uuid4()
-            tx = request.app.config.get('contract_ach').functions.mint([ ach_uuid.int, web3.constants.ADDRESS_ZERO, request.app.config['account'].address, False, 'some info']).build_transaction(
+            int_uuid = (await get_uuid(conn, r.get('address'), r.get('chainId'))).int
+            tx = request.app.config.get('contract_ach').functions.mint([ach_uuid.int, int_uuid, 0, 1, False, 'some info']).build_transaction(
             {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
-            'from': request.app.config['account'].address
+             'from': request.app.config['account'].address
             })
 
             stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)

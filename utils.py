@@ -8,7 +8,8 @@ import aiosmtplib
 from aiosmtplib import send, SMTP
 from bcrypt import hashpw, gensalt
 from web3 import Web3
-from server import PK
+
+PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
 
 from aleph_client.asynchronous import get_posts, create_store, create_post
 from aleph_client.chains.ethereum import ETHAccount
