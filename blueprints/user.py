@@ -32,7 +32,7 @@ async def get_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId')):
-            return json({'error': 'User is not registred'}, 409)
+            return json({'error': 'User is not registered'}, 409)
 
         uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
         info = await get_info(conn, uuid)
@@ -84,11 +84,6 @@ async def msg_params(request: Request):
         [r.get('hash_email'), r.get('github_token')]).build_transaction(
         {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address')))})
 
-    ###############
-    stx = w3.eth.account.signTransaction(data, request.app.config['account'].key)    
-    txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
-    w3.eth.wait_for_transaction_receipt(txHash)
-
     data['value'] = to_hex(data['value'])
     data['gas'] = to_hex(data['gas'])
     data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
@@ -114,4 +109,3 @@ async def add(request: Request):
         await reg_user(conn, r.get('address'), r.get('chainId'))
         await del_verify(conn, r.get('address'), r.get('chainId'))
     return json({"uid": 1})
-
