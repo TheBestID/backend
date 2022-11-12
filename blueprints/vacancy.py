@@ -1,5 +1,5 @@
-from uuid import uuid4
-
+from uuid import uuid4, UUID
+from eth_utils import to_hex
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
