@@ -3,7 +3,7 @@ from eth_utils import to_hex
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
-
+from web3 import Web3
 from database.users import check, get_uuid
 from database.vacancy import create, clear_database, get_database, add_vacancy, edit_vacancy, isAllowed, isCreated
 from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy, getUuidByid
@@ -35,7 +35,8 @@ async def add(request: Request):
             cid = await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), r.get('chainId'))), r.get('price'), r.get('category'), r.get('info'), str(ach_uuid))
 
             data = request.app.config.get('contract_ach').functions.mint([ach_uuid.int, int_uuid, 0, 1, False, cid]).build_transaction(
-            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)
+            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
+             'from': Web3.toChecksumAddress(r.get('address'))
             })
 
             if r.get('return_trans'):
@@ -47,7 +48,7 @@ async def add(request: Request):
                 data['nonce'] = to_hex(data['nonce'])
                 return json(data)
             else:
-                stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
+                stx = w3.eth.account.signTransaction(data, request.app.config['account'].key)
                 txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
                 #w3.eth.wait_for_transaction_receipt(txHash)
             return empty(200)
@@ -137,7 +138,7 @@ async def delete_va(request: Request):
             ach_uuid = UUID(await getUuidByid(conn, r.get('id')))
             tx = request.app.config.get('contract_ach').functions.burn(ach_uuid.int).build_transaction(
             {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
-             'from': request.app.config['account'].address
+             'from': Web3.toChecksumAddress(r.get('address'))
             })
             stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
             txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
