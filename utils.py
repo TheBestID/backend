@@ -1,15 +1,16 @@
-from asyncio import get_event_loop
 import json
-import requests
 from asyncio import get_event_loop
 from email.message import EmailMessage
 from uuid import UUID
 
+import requests
 from aiosmtplib import SMTP
 from aleph_client.asynchronous import create_store
 from aleph_client.chains.ethereum import ETHAccount
 from bcrypt import hashpw, gensalt
 from web3 import Web3
+
+PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
 
 
 async def hashing(data: str) -> str:

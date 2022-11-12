@@ -1,6 +1,5 @@
 from uuid import uuid4
 
-import web3
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
@@ -29,9 +28,9 @@ async def add(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), str(r.get('chainId'))):
             ach_uuid = uuid4()
+            int_uuid = (await get_uuid(conn, r.get('address'), r.get('chainId'))).int
             tx = request.app.config.get('contract_ach').functions.mint(
-                [ach_uuid.int, web3.constants.ADDRESS_ZERO, request.app.config['account'].address, False,
-                 'some info']).build_transaction(
+                [ach_uuid.int, int_uuid, 0, 1, False, 'some info']).build_transaction(
                 {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
                  'from': request.app.config['account'].address
                  })
@@ -106,7 +105,7 @@ async def confirm_vacancy(request: Request):
         if r.get('hash') != '':
             return empty(200)
         else:
-            delete_vacancy(r.get('id'))
+            await delete_vacancy(r.get('id'))
         pass
 
 
