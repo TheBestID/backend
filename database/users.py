@@ -19,7 +19,8 @@ async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool
             address             TEXT        PRIMARY KEY,
             chainid             INT         NOT NULL,
             uuid                UUID        NOT NULL,
-            registered          BOOL        DEFAULT False
+            registered          BOOL        DEFAULT False,
+            cid_cv              TEXT        DEFAULT ''
         );
         ''')
     return True
@@ -47,7 +48,7 @@ async def add_user(conn: Union[Connection, Pool], address: str, chainId: str, uu
     await conn.execute("""
         INSERT INTO users (address, chainid, uuid)
         VALUES ($1, $2, $3)
-        """, address, int(chainId), uuid)
+        """, str(address).lower(), int(chainId), uuid)
 
 
 async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID):
@@ -61,7 +62,7 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID):
         UPDATE users 
         SET registered = True
         WHERE address = $1 AND chainid = $2;
-        """, address, int(chainId))
+        """, str(address).lower(), int(chainId))
 
 
 async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
@@ -75,7 +76,7 @@ async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) ->
         SELECT registered
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, int(chainId))
+        """, str(address).lower(), int(chainId))
     if res:
         return res['registered']
     return False
@@ -92,7 +93,7 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, int(chainId)))
+        """, str(address).lower(), int(chainId)))
 
 
 async def clear_users(conn: Union[Connection, Pool]):
@@ -117,7 +118,7 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str):
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2;
-        """, address, int(chainId))
+        """, str(address).lower(), int(chainId))
     if res:
         return res.get('uuid')
     return None

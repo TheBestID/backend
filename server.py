@@ -36,7 +36,7 @@ async def init(app1):
     app1.config['contract'] = app1.config['web3'].eth.contract(address="0x912C9ded9e44BB1aD308560CD1449e28c7735d63",
                                                                abi=ABI)
     app1.config['contract_ach'] = app1.config['web3'].eth.contract(address="0xDf306d88bE9586253eb8d4F42B818ABeD62e6175",
-                                                               abi=achivement_ABI)
+                                                                   abi=achivement_ABI)
     app1.config['account']: LocalAccount = Account.from_key(PK)
     app1.config['web3'].eth.default_account = app1.config['account'].address
     app1.config['email'] = "souldev.web3@gmail.com"
