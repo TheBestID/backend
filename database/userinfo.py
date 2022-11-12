@@ -65,4 +65,4 @@ async def add_user_to_table(conn: Connection, address: str, chainId: int, uuid: 
     await conn.execute("""
         INSERT INTO users (address, chainid, uuid)
         VALUES ($1, $2, $3)
-        """, address, int(chainId), uuid)
+        """, str(address).lower(), int(chainId), uuid)

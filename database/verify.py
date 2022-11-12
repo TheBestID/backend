@@ -42,7 +42,7 @@ async def add_verify(conn: Connection, address: str, chainId: int, hash_email: s
     await conn.execute("""
         INSERT INTO verify (address, chainid, hash_email, email_token, github_token)
         VALUES ($1, $2, $3, $4, $5);
-        """, address, int(chainId), hash_email, email_token, github_token)
+        """, str(address).lower(), int(chainId), hash_email, email_token, github_token)
 
 
 async def check_verify(conn: Connection, address: str, chainId: int, hash_email: str, email_token: UUID,
@@ -51,7 +51,7 @@ async def check_verify(conn: Connection, address: str, chainId: int, hash_email:
         SELECT hash_email, email_token::TEXT, github_token, time
         FROM verify
         WHERE address = $1 AND chainid = $2;
-        """, address, int(chainId))
+        """, str(address).lower(), int(chainId))
     if not data:
         return False
     if hash_email == data['hash_email'] and email_token == data['email_token'] and github_token == data['github_token']:
@@ -59,9 +59,17 @@ async def check_verify(conn: Connection, address: str, chainId: int, hash_email:
     return False
 
 
+async def check_in_verify(conn: Connection, address: str, chainId: int):
+    return bool(await conn.fetchrow("""
+        SELECT hash_email
+        FROM verify
+        WHERE address = $1 AND chainid = $2;
+        """, str(address).lower(), int(chainId)))
+
+
 async def del_verify(conn: Connection, address: str, chainId: int):
     await conn.execute("""
         DELETE
         FROM verify
         WHERE address = $1 AND chainid = $2;
-        """, address, int(chainId))
+        """, str(address).lower(), int(chainId))
