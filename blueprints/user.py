@@ -32,7 +32,7 @@ async def get_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId')):
-            return json({'error': 'User is not registred'}, 409)
+            return json({'error': 'User is not registered'}, 409)
 
         uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
         info = await get_info(conn, uuid)
@@ -108,4 +108,3 @@ async def add(request: Request):
         await reg_user(conn, r.get('address'), r.get('chainId'))
         await del_verify(conn, r.get('address'), r.get('chainId'))
     return json({"uid": 1})
-
