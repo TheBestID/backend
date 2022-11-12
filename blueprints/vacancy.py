@@ -20,8 +20,6 @@ async def get_bd(request: Request):
 
 @vacancy.post("/add")
 @openapi.body({"application/json": VacancyAdd}, required=True)
-# @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
-# @openapi.response(409, description='Wallet is already registered')
 async def add(request: Request):
     r = request.json
     w3 = request.app.config.get('web3')

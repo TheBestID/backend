@@ -84,11 +84,6 @@ async def msg_params(request: Request):
         [r.get('hash_email'), r.get('github_token')]).build_transaction(
         {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address')))})
 
-    ###############
-    stx = w3.eth.account.signTransaction(data, request.app.config['account'].key)    
-    txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
-    w3.eth.wait_for_transaction_receipt(txHash)
-
     data['value'] = to_hex(data['value'])
     data['gas'] = to_hex(data['gas'])
     data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])

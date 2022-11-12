@@ -84,13 +84,19 @@ async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: st
     if in_asc:
         return await conn.fetch("""
             SELECT owner_uuid, price, category, timestamp::TEXT
-            FROM vacancy ORDER BY $1 ASC LIMIT $2 OFFSET $3 ROW;
+            FROM vacancy 
+            ORDER BY $1 ASC 
+            LIMIT $2 
+            OFFSET $3 ROW;
             """, sort_value, top_number, offset_number)
 
     else:
         return await conn.fetch("""
             SELECT owner_uuid, price, category, timestamp::TEXT
-            FROM vacancy ORDER BY $1 DESC LIMIT $2 OFFSET $3 ROW;
+            FROM vacancy 
+            ORDER BY $1 DESC 
+            LIMIT $2 
+            OFFSET $3 ROW;
             """, sort_value, top_number, offset_number)
 
 
@@ -98,7 +104,11 @@ async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: st
 async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str, sort_value: str, sort_value_int: str, offset_number: int,  top_number: int, in_asc: bool) -> list:
     return await conn.fetch("""
              SELECT owner_uuid, price, category, timestamp::TEXT
-             FROM vacancy WHERE $1 = $2 ORDER BY $3 LIMIT $4 OFFSET $5 ROW;
+             FROM vacancy 
+             WHERE $1 = $2 
+             ORDER BY $3 
+             LIMIT $4 
+             OFFSET $5 ROW;
              """, sort_type, sort_value, sort_value_int, top_number, offset_number)
     # in_asc = True
     # if in_asc:
