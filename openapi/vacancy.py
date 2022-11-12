@@ -11,7 +11,8 @@ class VacancyAdd:
     chainId: int
     price: int
     category: str
-    info: str   
+    info: str
+    return_trans: bool   
 
 class VacancyEdit:
     id: int

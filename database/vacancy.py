@@ -27,11 +27,11 @@ async def addSBTvac():
 
 
 async def getUuidByid(conn: Union[Connection, Pool], id: int):
-    return await conn.fetchrow("""
+    return (await conn.fetchrow("""
         SELECT ach_uuid
         FROM vacancy
         WHERE id = $1;
-        """, id)
+        """, id)).get('ach_uuid')
 
 
 async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
@@ -67,7 +67,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
 
 # what is the defualt type of timestamp?
-async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str, ach_uuid: str):
+async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str, ach_uuid: str) -> str:
     data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}, {'ach_uuid':ach_uuid}])
     cid = await loadToIpfs(data)
     
@@ -75,6 +75,8 @@ async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: in
         INSERT INTO vacancy (owner_uuid, ach_uuid, price, category, info, ipfs_cid)
         VALUES ($1, $2, $3, $4, $5, $6);
         """, owner_uuid, ach_uuid, price, category, info, cid)
+
+    return cid
     
     
 
@@ -124,7 +126,15 @@ async def get_vacancy(conn: Union[Connection, Pool], id: int):
 
 #change create_dump: add ach_uuid!!!
 async def edit_vacancy(conn: Union[Connection, Pool], id: int, price: int, category: str, info: str, owner_uuid: str):
-    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}])
+    old_cid= (await conn.fetchrow("""
+        SELECT ipfs_cid
+        FROM vacancy
+        WHERE id = $1;
+        """, id)).get('ipfs_cid')
+    
+    
+
+    data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}, {'last_cid' : old_cid}])
     cid = await loadToIpfs(data)
     await conn.fetch("""
         UPDATE vacancy SET price = $1, category = $2, info = $3, ipfs_cid = $5 WHERE id = $4;
