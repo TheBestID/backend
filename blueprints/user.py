@@ -68,9 +68,9 @@ async def msg_params(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId')):
             return json({'error': 'Wallet is already registered'}, 409)
-        if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('hash_email'), r.get('email_token'),
-                                  r.get('github_token')):
-            return json({'error': 'Verification error'}, 408)
+        # if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('hash_email'), r.get('email_token'),
+        #                           r.get('github_token')):
+        #     return json({'error': 'Verification error'}, 408)
         uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
     tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
