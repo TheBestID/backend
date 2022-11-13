@@ -42,7 +42,7 @@ async def add_verify(conn: Connection, address: str, chainId: int, hash_email: s
     await conn.execute("""
         INSERT INTO verify (address, chainid, hash_email, email_token, github_token)
         VALUES ($1, $2, $3, $4, $5);
-        """, str(address).lower(), int(chainId), hash_email, email_token, github_token)
+        """, str(address).lower(), int(chainId), hash_email, email_token.replace("-", ""), github_token)
 
 
 async def check_verify(conn: Connection, address: str, chainId: int, hash_email: str, email_token: UUID,
