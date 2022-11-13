@@ -28,3 +28,6 @@ class UserCheck:
     address: str
     chainId: int
 
+
+class GetUser:
+    uuid: str

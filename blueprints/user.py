@@ -9,7 +9,7 @@ from sanic_ext import openapi
 from database.userinfo import get_info
 from database.users import check, add_user, get_uuid, reg_user, checkReg
 from database.verify import add_verify, check_verify, del_verify, check_in_verify
-from openapi.user import UserCheck
+from openapi.user import UserCheck, GetUser
 from utils import hashing, git_token, send_email
 
 user = Blueprint("user", url_prefix="/user")
@@ -22,21 +22,24 @@ user = Blueprint("user", url_prefix="/user")
 async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, request.json.get('address'), request.json.get('chainId')):
-            return json({"uid": 1})
+            return json({"uuid": 1})
     return empty(409)
 
 
 @user.post("/get")
-@openapi.body({"application/json": UserCheck}, required=True)
+@openapi.body({"application/json": GetUser}, required=True)
 async def get_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address'), r.get('chainId')):
-            return json({'error': 'User is not registered'}, 409)
+        # if await check(conn, r.get('address'), r.get('chainId')):
+        #     return json({'error': 'User is not registered'}, 409)
 
-        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
-        info = await get_info(conn, uuid)
-        return json(dict(info))
+        # uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
+        # #info = await get_info(conn, uuid)
+        return json({
+            'username': 'username',
+            'wallets': [ {'chainId': 5, 'address': 'your ass'}, {'chainId': 4, 'address': 'your ass2'}]
+        })
 
 
 @user.post("/email")
