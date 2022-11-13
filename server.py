@@ -35,7 +35,7 @@ async def init(app1):
     app1.config['web3'] = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
     app1.config['contract'] = app1.config['web3'].eth.contract(address="0x65d1982808927039Cf9f861b6a746356EE3b7A08",
                                                                abi=ABI)
-    app1.config['contract_ach'] = app1.config['web3'].eth.contract(address="0x81995d0fA02226b1E12be573F1c02461A3840722",
+    app1.config['contract_ach'] = app1.config['web3'].eth.contract(address="0xE2eEB40479530Ef0a697D392887ad9A5b85D61bA",
                                                                abi=achivement_ABI)
     app1.config['account']: LocalAccount = Account.from_key(PK)
     app1.config['web3'].eth.default_account = app1.config['account'].address
@@ -74,3 +74,5 @@ app.register_middleware(add_cors_headers, "response")
 
 if __name__ == "__main__":
     app.run(dev=True)  # , fast=True
+
+
