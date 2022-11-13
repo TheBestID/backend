@@ -12,10 +12,10 @@ ABI = [
 		"type": "constructor"
 	},
 	{
-		"anonymous": false,
+		"anonymous": False,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": False,
 				"internalType": "uint256",
 				"name": "_soul_id_to_burn",
 				"type": "uint256"
@@ -50,10 +50,10 @@ ABI = [
 		"type": "function"
 	},
 	{
-		"anonymous": false,
+		"anonymous": False,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": False,
 				"internalType": "uint256",
 				"name": "_soul_id",
 				"type": "uint256"
@@ -81,10 +81,10 @@ ABI = [
 		"type": "function"
 	},
 	{
-		"anonymous": false,
+		"anonymous": False,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": False,
 				"internalType": "uint256",
 				"name": "_soul_id",
 				"type": "uint256"
@@ -94,10 +94,10 @@ ABI = [
 		"type": "event"
 	},
 	{
-		"anonymous": false,
+		"anonymous": False,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": False,
 				"internalType": "uint256",
 				"name": "_soul_id",
 				"type": "uint256"
@@ -120,10 +120,10 @@ ABI = [
 		"type": "function"
 	},
 	{
-		"anonymous": false,
+		"anonymous": False,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": False,
 				"internalType": "address",
 				"name": "_new_address",
 				"type": "address"
@@ -133,10 +133,10 @@ ABI = [
 		"type": "event"
 	},
 	{
-		"anonymous": false,
+		"anonymous": False,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": False,
 				"internalType": "uint256",
 				"name": "_soul_id_to_update",
 				"type": "uint256"
