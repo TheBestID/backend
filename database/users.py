@@ -1,4 +1,6 @@
-from typing import Union
+from __future__ import annotations
+
+from typing import Union, Any
 from uuid import UUID
 
 from asyncpg import Connection, Pool
@@ -107,7 +109,7 @@ async def clear_users(conn: Union[Connection, Pool]):
     return
 
 
-async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str):
+async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str) -> UUID | None:
     """
     :param chainId:
     :param address:

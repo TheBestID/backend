@@ -1,4 +1,5 @@
 from typing import Union
+from uuid import UUID
 
 from asyncpg import Connection, Pool
 
@@ -33,3 +34,19 @@ async def get_table_achievements(conn: Connection):
         SELECT *
         FROM achievements;
         """)
+
+
+async def add_achievements(conn: Union[Connection, Pool], sbt_id: UUID, _from: UUID, to: UUID, cid: str, _type: str):
+    """
+    :param conn:
+    :param sbt_id:
+    :param _from:
+    :param to:
+    :param cid:
+    :param _type:
+    :return:
+    """
+    await conn.execute("""
+        INSERT INTO achievements (sbt_id, _from, to, cid, _type)
+        VALUES ($1, $2, $3, $4, $5)
+        """, sbt_id, _from, to, cid, _type)

@@ -6,6 +6,7 @@ from eth_account.signers.local import LocalAccount
 from sanic import Sanic
 from web3 import Web3
 
+from blueprints.achievements import achievements
 from blueprints.admin import admin
 # from blueprints.company import company
 from blueprints.user import user
@@ -23,6 +24,7 @@ app.blueprint(user)
 app.blueprint(vacancy)
 app.blueprint(hacks)
 app.blueprint(admin)
+app.blueprint(achievements)
 
 PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
 
