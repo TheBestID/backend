@@ -20,8 +20,8 @@ async def create_table_achievements(conn: Union[Connection, Pool], clear=False) 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS achievements(
             sbt_id              UUID        PRIMARY KEY,
-            from                UUID        NOT NULL,
-            to                  UUID        NOT NULL,
+            from_adr            UUID        NOT NULL,
+            to_adr              UUID        NOT NULL,
             cid                 TEXT        NOT NULL,
             type                TEXT        NOT NULL
         );
@@ -47,6 +47,14 @@ async def add_achievements(conn: Union[Connection, Pool], sbt_id: UUID, _from: U
     :return:
     """
     await conn.execute("""
-        INSERT INTO achievements (sbt_id, _from, to, cid, _type)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO achievements (sbt_id, from_adr, to_adr, cid, type)
+        VALUES ($1, $2, $3, $4, $5);
         """, sbt_id, _from, to, cid, _type)
+
+
+async def get_owned_ach_by_uuid(conn: Connection, uuid: UUID):
+    return await conn.fetch("""
+        SELECT cid, type
+        FROM achievements
+        WHERE to_adr = $1;
+        """, uuid)

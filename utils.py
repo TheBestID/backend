@@ -40,14 +40,12 @@ def create_dump(username: str, description: str, isImage: bool, attributes=[], i
         })
 
 
-async def loadToIpfs(data):
+async def loadToIpfs(data, key):
     # return 'IPFS relax but still work ^_^'
-    with open('key.txt', 'r') as file:
-        key = file.read()
-        acc = ETHAccount(key)
-        hash = await create_store(file_content=bytes(data, 'utf-8'), account=acc, storage_engine="ipfs")
-        print(hash.content.item_hash)
-        return hash.content.item_hash
+    acc = ETHAccount(key)
+    hash = await create_store(file_content=bytes(data, 'utf-8'), account=acc, storage_engine="ipfs")
+    print(hash.content.item_hash)
+    return hash.content.item_hash
 
 
 def getFromIpfs(cid):
