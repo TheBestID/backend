@@ -61,7 +61,7 @@ async def send_email(email, hash_email, github_token, email_token: UUID, e_from,
     message["To"] = email
     message["Subject"] = "Verification!"
     message.set_content(
-        f"To pass verification, follow the link:\nhttp://localhost:3000/email-success?code={github_token}&email_token={email_token.hex}&email={hash_email}")
+        f"To pass verification, follow the link:\nhttp://localhost:3000/success-email?code={github_token}&email_token={email_token.hex}&email={hash_email}")
     try:
         async with SMTP(hostname="smtp.gmail.com", port=465, use_tls=True, username=e_from, password=e_pass) as smtp:
             await smtp.send_message(message)
