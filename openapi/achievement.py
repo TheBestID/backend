@@ -11,3 +11,10 @@ class Achievement:
 class GetAchievement:
     address: str
     chainId: int
+
+
+class AchievementAdd:
+    address: str
+    chainId: int
+    sbt_id: UUID
+    txHash: str

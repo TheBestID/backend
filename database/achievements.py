@@ -23,7 +23,9 @@ async def create_table_achievements(conn: Union[Connection, Pool], clear=False) 
             from_adr            UUID        NOT NULL,
             to_adr              UUID        NOT NULL,
             cid                 TEXT        NOT NULL,
-            type                TEXT        NOT NULL
+            type                TEXT        NOT NULL,
+            time                TIMESTAMP   DEFAULT NOW(),
+            tx_hash             TEXT        NOT NULL
         );
         ''')
     return True
@@ -31,25 +33,9 @@ async def create_table_achievements(conn: Union[Connection, Pool], clear=False) 
 
 async def get_table_achievements(conn: Connection):
     return await conn.fetch("""
-        SELECT *
+        SELECT sbt_id::TEXT, from_adr::TEXT, to_adr::TEXT, cid, type, time::TEXT, tx_hash
         FROM achievements;
         """)
-
-
-async def add_achievements(conn: Union[Connection, Pool], sbt_id: UUID, _from: UUID, to: UUID, cid: str, _type: str):
-    """
-    :param conn:
-    :param sbt_id:
-    :param _from:
-    :param to:
-    :param cid:
-    :param _type:
-    :return:
-    """
-    await conn.execute("""
-        INSERT INTO achievements (sbt_id, from_adr, to_adr, cid, type)
-        VALUES ($1, $2, $3, $4, $5);
-        """, sbt_id, _from, to, cid, _type)
 
 
 async def get_owned_ach_by_uuid(conn: Connection, uuid: UUID):
@@ -57,4 +43,12 @@ async def get_owned_ach_by_uuid(conn: Connection, uuid: UUID):
         SELECT cid, type
         FROM achievements
         WHERE to_adr = $1;
+        """, uuid)
+
+
+async def get_created_ach_by_uuid(conn: Connection, uuid: UUID):
+    return await conn.fetch("""
+        SELECT cid, type
+        FROM achievements
+        WHERE from_adr = $1;
         """, uuid)
