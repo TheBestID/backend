@@ -6,24 +6,44 @@
 # r = requests.post('http://localhost:8000/user/address',
 #                   json={'address': '134'})
 # print(r.text, time.time() - start)
+import json
+import sys
+import asyncio
 
-import smtplib
+import aioipfs
 
 
-email = 'souldev.web3@gmail.com'
-pasw = 'zzolvnzkmvkywerq'
-TO = ['agibalov1294@gmail.com']
-SUBJECT = 'TEST'
-TEXT = 'TEST BOBA'
+async def get():
+    client = aioipfs.AsyncIPFS(maddr='/ip4/127.0.0.1/tcp/5001')
+    print(client.session)
 
-# Prepare actual message
-message = """From: %s\nTo: %s\nSubject: %s\n\n%s
-""" % (email, ", ".join(TO), SUBJECT, TEXT)
+    a = await client.add_json({'popa11': "boba22"})
+    print(a)
 
-server = smtplib.SMTP("smtp.gmail.com", 587)
-server.ehlo()
-server.starttls()
-server.login(email, pasw)
-server.sendmail(email, TO, message)
-server.close()
-print('successfully sent the mail')
+    params = {
+        'arg': a['Hash'],
+        'compress': 0,
+        'compression-level': str(-1),
+        'archive': 1
+    }
+
+    async with client.core.driver.session.post(client.core.url('get'), params=params) as resp:
+        chunk = await resp.content.read()
+        print(chunk.decode('ascii'))
+    # b = await client.get(c)
+    # print(b)
+
+    await client.close()
+
+
+asyncio.run(get())
+
+
+async def add_files(files: list):
+    client = aioipfs.AsyncIPFS(maddr='/ip4/127.0.0.1/tcp/5001')
+
+    async for added_file in client.add(*files, recursive=True):
+        print('Imported file {0}, CID: {1}'.format(
+            added_file['Name'], added_file['Hash']))
+
+    await client.close()

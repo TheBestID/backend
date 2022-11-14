@@ -21,6 +21,7 @@ def send_data():
     w3.eth.default_account = '0x41c9288b78090946db0fd6d32D8cB1fEfe18134B'
     pk = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
     print(w3.eth.default_account)
+
     uuid = uuid4()
     url = Web3.toHex(b'url tester')
     git = Web3.toHex(b'git_tester')
