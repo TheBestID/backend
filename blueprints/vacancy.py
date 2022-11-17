@@ -32,7 +32,7 @@ async def add(request: Request):
             ach_uuid = uuid4()
             int_uuid = (await get_uuid(conn, r.get('address'), r.get('chainId'))).int
 
-            cid = await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), r.get('chainId'))), r.get('price'), r.get('category'), r.get('info'), str(ach_uuid))
+            cid = await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), r.get('chainId'))), r.get('price'), r.get('category'), r.get('info'), str(ach_uuid), request.app.config.get('account').key())
 
             data = request.app.config.get('contract_ach').functions.mint([ach_uuid.int, int_uuid, 0, 1, False, cid]).build_transaction(
             {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),

@@ -67,9 +67,9 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
 
 # what is the defualt type of timestamp?
-async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str, ach_uuid: str) -> str:
+async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str, ach_uuid: str, key) -> str:
     data = create_dump('username', info, False, attributes=[{'type achivement': 'vacancy'}, {'owner_uuid': str(owner_uuid)}, {'category': category}, {'price': price}, {'ach_uuid':ach_uuid}])
-    cid = await loadToIpfs(data)
+    cid = await loadToIpfs(data, key)
     
     await conn.execute("""
         INSERT INTO vacancy (owner_uuid, ach_uuid, price, category, info, ipfs_cid)
