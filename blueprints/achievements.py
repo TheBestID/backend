@@ -24,8 +24,8 @@ async def add_achievement_params(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if not await checkReg(conn, r.get('from_address'), r.get('chainId')):
             return json({'error': "From wallet isn't registered"}, 409)
-        if not await checkReg(conn, r.get('to_address'), r.get('chainId')):
-            return json({'error': "To wallet isn't registered"}, 409)
+        # if not await checkReg(conn, r.get('to_address'), r.get('chainId')):
+        #     return json({'error': "To wallet isn't registered"}, 409)
 
         ach_uuid = uuid4()
         from_uuid = await get_uuid(conn, r.get('from_address'), r.get('chainId'))

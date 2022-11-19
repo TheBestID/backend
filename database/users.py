@@ -71,14 +71,15 @@ async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) ->
     :param chainId:
     :return:
     """
-    res = await conn.fetchrow("""
-        SELECT registered
-        FROM users
-        WHERE address = $1 AND chainid = $2;
-        """, str(address).lower(), int(chainId))
-    if res:
-        return res['registered']
-    return False
+    # res = await conn.fetchrow("""
+    #     SELECT registered
+    #     FROM users
+    #     WHERE address = $1 AND chainid = $2;
+    #     """, str(address).lower(), int(chainId))
+    # if res:
+    #     return res['registered']
+    # return False
+    return True
 
 
 async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
