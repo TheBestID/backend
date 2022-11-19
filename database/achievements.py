@@ -9,9 +9,8 @@ from asyncpg import Connection, Pool
 
 async def create_table_achievements(conn: Union[Connection, Pool], clear=False) -> bool:
     """
-    Создает таблицу users
-    :param conn:    Объект подключения к БД
-    :param clear:   If True -> очистить таблицу
+    :param conn:
+    :param clear:
     :return:
     """
     if clear:

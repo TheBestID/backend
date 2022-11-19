@@ -38,7 +38,7 @@ async def get_user(request: Request):
         # #info = await get_info(conn, uuid)
         return json({
             'username': 'username',
-            'wallets': [ {'chainId': 5, 'address': 'your ass'}, {'chainId': 4, 'address': 'your ass2'}]
+            'wallets': [{'chainId': 5, 'address': 'your ass'}, {'chainId': 4, 'address': 'your ass2'}]
         })
 
 
@@ -85,7 +85,8 @@ async def msg_params(request: Request):
 
     data = request.app.config.get('contract').functions.claim(
         [r.get('hash_email'), r.get('github_token')]).build_transaction(
-        {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address')))})
+        {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address'))),
+         'from': to_checksum_address(r.get('address'))})
 
     data['value'] = to_hex(data['value'])
     data['gas'] = to_hex(data['gas'])
