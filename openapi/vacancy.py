@@ -1,10 +1,12 @@
 from uuid import UUID
 
+
 class VacancyTemplate:
     owner_uuid: UUID
     price: int
     category: str
-    info: str   
+    info: str
+
 
 class VacancyAdd:
     address: str
@@ -12,7 +14,8 @@ class VacancyAdd:
     price: int
     category: str
     info: str
-    return_trans: bool   
+    return_trans: bool
+
 
 class VacancyEdit:
     id: int
@@ -21,7 +24,7 @@ class VacancyEdit:
     address: str
     price: int
     category: str
-    info: str   
+    info: str
 
 
 class GetPreviews:
@@ -38,7 +41,7 @@ class GetPreviewsBySTR:
     offset_number: int
     top_number: int
     in_asc: bool
-    
+
 
 class GetPreviewsByID:
     id: int
@@ -54,4 +57,4 @@ class Confirm:
     id: int
     address: str
     chainId: int
-    hash: str 
+    hash: str

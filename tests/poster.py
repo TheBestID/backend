@@ -88,7 +88,7 @@ from quart_jwt_extended import create_access_token
 #                         })
 # print(r.text, time.time() - start)
 
-# files = {'banner': open('D://Wherby//Clothes.csv', 'rb')}
+
 # data = {'title': 'tort'}
 # r = requests.post('http://localhost:5000/admin/banners', data=data, files=files)
 # print(r.text)
@@ -169,7 +169,6 @@ from quart_jwt_extended import create_access_token
 
 # print(r.text, time.time() - start)
 # ava = open('static/img/0b843445072b407ab481ffb93427dfef.jpg', 'rb')
-# con = open('C:/Users/user/Desktop/Документы/Англ.DOCX', 'rb')
 # d = {'title': fake.company(), 'f_name': fake.first_name(), 's_name': fake.last_name(),
 #      'phone': fake.phone_number()[:12],
 #      'email': fake.free_email(), 'tg': fake.free_email(), 'birthday': fake.date(), 'end_work': fake.date(),
@@ -179,7 +178,7 @@ from quart_jwt_extended import create_access_token
 # r = requests.post('http://localhost:1000/supplier/registration',
 #                   files={
 #                       'avatar': ('0b843445072b407ab481ffb93427dfef.jpg', ava, 'application/octet-stream'),
-#                       'contract': ('Англ.DOCX', con, 'application/octet-stream'),
+#                       'contract': ('', con, 'application/octet-stream'),
 #                       'json': (None, json.dumps(d), 'application/json')
 #                   })
 # print(r.text, time.time() - start)
@@ -191,43 +190,6 @@ from quart_jwt_extended import create_access_token
 # print(r.text, time.time() - start)
 # #
 # start = time.time()
-
-# ava = open('C:/Users/user/Desktop/Документы/ава.jpg', 'rb')
-# con = open('C:/Users/user/Desktop/Документы/ава2.jpg', 'rb')
-
-r = requests.post('http://localhost/supplier/profile/products',
-                  json={'name': 'Шорты Nike',
-                        'brand': 'Nike',
-                        'type_id': 13,
-                        'sex': 1,
-                        'weight': 200,
-                        'collection': 'Спорт',
-                        'material': 'Хлопок',
-                        'compound': 'Хлопок',
-                        'care_conditions': 'гладить',
-                        'description': 'Лучшие шорты',
-                        'colors': [
-                            {'color': 1,
-                             'supplier_price': 1000,
-                             'sizes': [
-                                 {'size': 1,  # Если есть new_size - любое
-                                  'quantity': 12},
-                                 {'size': 2,  # Если есть new_size - любое
-                                  'quantity': 23},
-                                 {'size': 3,  # Если есть new_size - любое
-                                  'quantity': 10}
-                             ]},
-                            {'color': 2,
-                             'supplier_price': 1200,
-                             'sizes': [
-                                 {'size': 3,  # Если есть new_size - любое
-                                  'quantity': 111},
-                                 {'size': 4,  # Если есть new_size - любое
-                                  'quantity': 122}
-                             ]}
-                        ]},
-                  headers={
-                      'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NjYzNjY2NzgsIm5iZiI6MTY2NjM2NjY3OCwianRpIjoiOTRmOGNkM2ItZDRlMS00OGNjLWE1MTYtZGFiMjYwZjI1NjFiIiwiZXhwIjoxNjY2MzY3NTc4LCJpZGVudGl0eSI6IjJkODJmZGEyLTkwNDMtNDI0YS1hZDlmLTk1ZDFhYzdiYzVhZSIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyIsInVzZXJfY2xhaW1zIjp7InJvbGUiOiJzdXBwbGllciJ9fQ.zj_Vvzcbj0diQ6Idf62kgdKqDgnIq0mQ3qSJkcyBQfw"})
 
 # ava.close()
 # con.close()

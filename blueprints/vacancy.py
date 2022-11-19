@@ -1,16 +1,16 @@
 from uuid import uuid4, UUID
+
 from eth_utils import to_hex
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 from web3 import Web3
+
 from database.users import check, get_uuid
 from database.vacancy import create, clear_database, get_database, add_vacancy, edit_vacancy, isAllowed, isCreated
-from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy, getUuidByid
-
-
+from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy, \
+    getUuidByid
 from openapi.vacancy import VacancyAdd, GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit, Confirm
-
 
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 
@@ -28,16 +28,19 @@ async def add(request: Request):
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), str(r.get('chainId'))):
-            
+
             ach_uuid = uuid4()
             int_uuid = (await get_uuid(conn, r.get('address'), r.get('chainId'))).int
 
-            cid = await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), r.get('chainId'))), r.get('price'), r.get('category'), r.get('info'), str(ach_uuid), request.app.config.get('account').key)
+            cid = await add_vacancy(conn, str(await get_uuid(conn, r.get('address'), r.get('chainId'))), r.get('price'),
+                                    r.get('category'), r.get('info'), str(ach_uuid),
+                                    request.app.config.get('account').key)
 
-            data = request.app.config.get('contract_ach').functions.mint([ach_uuid.int, int_uuid, 0, 1, False, cid]).build_transaction(
-            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
-             'from': Web3.toChecksumAddress(r.get('address'))
-            })
+            data = request.app.config.get('contract_ach').functions.mint(
+                [ach_uuid.int, int_uuid, 0, 1, False, cid]).build_transaction(
+                {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
+                 'from': Web3.toChecksumAddress(r.get('address'))
+                 })
 
             if r.get('return_trans'):
                 data['value'] = to_hex(data['value'])
@@ -50,7 +53,7 @@ async def add(request: Request):
             else:
                 stx = w3.eth.account.signTransaction(data, request.app.config['account'].key)
                 txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
-                #w3.eth.wait_for_transaction_receipt(txHash)
+                # w3.eth.wait_for_transaction_receipt(txHash)
             return empty(200)
         else:
             return empty(409, {'eror': 'No permissions'})
@@ -132,14 +135,14 @@ async def delete_va(request: Request):
             return empty(409, {'error409': 'No such registred user'})
 
         if not await isCreated(conn, r.get('id')):
-             return empty(409, {'error409': 'No such vacancy'})
+            return empty(409, {'error409': 'No such vacancy'})
         if await isAllowed(conn, uuid_sender, r.get('id')):
-            
+
             ach_uuid = UUID(await getUuidByid(conn, r.get('id')))
             tx = request.app.config.get('contract_ach').functions.burn(ach_uuid.int).build_transaction(
-            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
-             'from': Web3.toChecksumAddress(r.get('address'))
-            })
+                {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
+                 'from': Web3.toChecksumAddress(r.get('address'))
+                 })
             stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
             txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
             await delete_vacancy(conn, r.get('id'))

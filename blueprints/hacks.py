@@ -1,14 +1,10 @@
-from uuid import uuid4
-
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
 from database.hacks import get_database, create, clear_database, isAllowed_, isCreated_, add_hack, get_hack
 from database.hacks import get_previews_sort_by_int, get_previews_sort_by_str
-
 from openapi.hacks import AddHack, SortByInt, SortByStr, GetById
-
 
 hacks = Blueprint("hacks", url_prefix="/hacks")
 
@@ -24,15 +20,18 @@ async def get_bd(request: Request):
 async def add(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        #if await check(conn, r.get('address'), r.get('chaiId')) == True:
+        # if await check(conn, r.get('address'), r.get('chaiId')) == True:
         if isAllowed_():
-            #add work with 
-            await add_hack(conn, str(r.get('chainId')), r.get('theme'), r.get('base_color'), r.get('font_head'),r.get('font_par'), 
-            r.get('hackathon_name'), r.get('description'), r.get('back_url'),r.get('logo_url'), r.get('price'), 
-            r.get('pool'), r.get('descr_price'),r.get('sbt_url'), r.get('descr_price'),r.get('social_link'), r.get('category'))
+            # add work with
+            await add_hack(conn, str(r.get('chainId')), r.get('theme'), r.get('base_color'), r.get('font_head'),
+                           r.get('font_par'),
+                           r.get('hackathon_name'), r.get('description'), r.get('back_url'), r.get('logo_url'),
+                           r.get('price'),
+                           r.get('pool'), r.get('descr_price'), r.get('sbt_url'), r.get('descr_price'),
+                           r.get('social_link'), r.get('category'))
             return empty(200)
         else:
-           return empty(409, {'eror': 'No permissions or not hackathon'})
+            return empty(409, {'eror': 'No permissions or not hackathon'})
 
 
 @hacks.post("/get_previews_sortby_one")
@@ -40,7 +39,8 @@ async def add(request: Request):
 async def get_previews_sortby_one(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'), r.get('top_number'), r.get('in_asc')))))
+        return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'),
+                                                                  r.get('top_number'), r.get('in_asc')))))
 
 
 @hacks.post("/get_previews_sortby_two")
@@ -48,7 +48,9 @@ async def get_previews_sortby_one(request: Request):
 async def get_previews_sortby_two(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type'), r.get('sort_value'), r.get('sort_value_int'), r.get('offset_number'), r.get('top_number'), r.get('in_asc')))))
+        return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type'), r.get('sort_value'),
+                                                                  r.get('sort_value_int'), r.get('offset_number'),
+                                                                  r.get('top_number'), r.get('in_asc')))))
 
 
 @hacks.post("/get_hack_by_id")
@@ -57,9 +59,8 @@ async def get_preview_by_id(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
         if await isCreated_(conn, r.get('id')):
-            return json(list(map(dict, await get_hack(conn,   r.get('id')))))
+            return json(list(map(dict, await get_hack(conn, r.get('id')))))
     return empty(409, {'error': 'no vacancy with such id'})
-
 
 
 @hacks.get("/clear_bd")
@@ -67,7 +68,6 @@ async def clear_(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         await clear_database(conn)
         return empty()
-
 
 
 @hacks.get("/create_db")

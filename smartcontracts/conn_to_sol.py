@@ -34,8 +34,9 @@ def send_data():
     return '1'
 
 
-# тест 0x65a8ba2F8F301d95196ec669590631aA615f2c95
 send_data()
+
+
 # account: LocalAccount = Account.from_key("cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629")
 # print(account.address)
 # print(account.key)
@@ -63,7 +64,6 @@ async def async_send_data():
 
 async def create():
     return await asyncio.get_event_loop().run_in_executor(None, hashpw, '1'.encode(), gensalt())
-
 
 # a = asyncio.run(create())
 # a = hashpw('1'.encode(), gensalt())

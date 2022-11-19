@@ -1,4 +1,3 @@
-
 class AddHack:
     address: str
     chainId: int
@@ -9,7 +8,7 @@ class AddHack:
     hackathon_name: str
     description: str
     back_url: str
-    logo_url: str         
+    logo_url: str
     price: int
     pool: str
     descr_price: str
