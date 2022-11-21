@@ -67,6 +67,7 @@ async def email(request: Request):
 @openapi.body({"application/json": UserCheck}, required=True)
 async def msg_params(request: Request):
     r = request.json
+    print(r)
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId')):
@@ -77,7 +78,7 @@ async def msg_params(request: Request):
         uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
 
-    if r.get('blockchain') == 'ETH':
+    if r.get('blockchain') == 'ETH' or 'eth':
         tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
                                                                uuid.int).build_transaction(
             {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
@@ -98,7 +99,7 @@ async def msg_params(request: Request):
         data['nonce'] = to_hex(data['nonce'])
         return json(data)
 
-    if r.get('blockchain') == 'NEAR':
+    if r.get('blockchain') == 'NEAR' or 'near':
         request.app.config.get('near_acc').function_call(request.app.get('near_contract'), "mint", [])
         return json({'contractId': request.app.get('near_contract'),
                      'method': 'claim',
