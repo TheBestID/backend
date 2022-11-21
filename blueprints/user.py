@@ -76,25 +76,35 @@ async def msg_params(request: Request):
         #     return json({'error': 'Verification error'}, 408)
         uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
-    tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
-                                                           uuid.int).build_transaction(
-        {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
-    stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
-    txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
-    w3.eth.wait_for_transaction_receipt(txHash)
 
-    data = request.app.config.get('contract').functions.claim(
-        [r.get('hash_email'), r.get('github_token')]).build_transaction(
-        {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address'))),
-         'from': to_checksum_address(r.get('address'))})
+    if r.get('blockchain') == 'ETH':
+        tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
+                                                               uuid.int).build_transaction(
+            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
+        stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
+        txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
+        w3.eth.wait_for_transaction_receipt(txHash)
 
-    data['value'] = to_hex(data['value'])
-    data['gas'] = to_hex(data['gas'])
-    data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
-    data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
-    data['chainId'] = to_hex(data['chainId'])
-    data['nonce'] = to_hex(data['nonce'])
-    return json(data)
+        data = request.app.config.get('contract').functions.claim(
+            [r.get('hash_email'), r.get('github_token')]).build_transaction(
+            {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address'))),
+             'from': to_checksum_address(r.get('address'))})
+
+        data['value'] = to_hex(data['value'])
+        data['gas'] = to_hex(data['gas'])
+        data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
+        data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
+        data['chainId'] = to_hex(data['chainId'])
+        data['nonce'] = to_hex(data['nonce'])
+        return json(data)
+
+    if r.get('blockchain') == 'NEAR':
+        request.app.config.get('near_acc').function_call(request.app.get('near_contract'), "mint", [])
+        return json({'contractId': request.app.get('near_contract'),
+                     'method': 'claim',
+                     'args': [r.get('hash_email'), r.get('github_token')],
+                     'gas': 1,
+                     'deposit': 100})
 
 
 @user.post("/add")
