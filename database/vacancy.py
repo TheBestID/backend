@@ -50,6 +50,16 @@ async def get_vacancies_page(conn: Union[Connection, Pool]) -> list:
         """)
 
 
+async def isCreated(conn: Union[Connection, Pool], sbt_id: int) -> bool:
+    return bool(await conn.fetchrow("""
+        SELECT sbt_id
+        FROM vacancy
+        WHERE sbt_id = $1;
+        """, sbt_id))
+
+
+############################################
+
 async def get_vacancy(conn: Union[Connection, Pool], sbt_id: int):
     cid = (await conn.fetchrow("""
         SELECT cid
@@ -59,16 +69,6 @@ async def get_vacancy(conn: Union[Connection, Pool], sbt_id: int):
     return json(
         {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
          'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
-
-
-############################################
-
-async def isCreated(conn: Union[Connection, Pool], sbt_id: int) -> bool:
-    return bool(await conn.fetchrow("""
-        SELECT sbt_id
-        FROM vacancy
-        WHERE id = $1;
-        """, sbt_id))
 
 
 async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int, top_number: int,
