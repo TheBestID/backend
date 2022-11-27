@@ -111,7 +111,7 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str, bl
     res = await conn.fetchrow("""
         SELECT uuid
         FROM users
-        WHERE address = $1 AND chainid = $2 AND blokchain = $3;
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
         """, str(address).lower(), int(chainId), blockchain.lower())
     if res:
         return res.get('uuid')
