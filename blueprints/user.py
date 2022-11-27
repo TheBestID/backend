@@ -38,7 +38,8 @@ async def get_user(request: Request):
         # #info = await get_info(conn, uuid)
         return json({
             'username': 'username',
-            'wallets': [{'chainId': 5, 'address': 'your ass'}, {'chainId': 4, 'address': 'your ass2'}]
+            'wallets': [{'chainId': 5, 'address': to_checksum_address('0x41c9288b78090946db0fd6d32D8cB1fEfe18134B')},
+                        {'chainId': 4, 'address': to_checksum_address('0x41c9288b78090946db0fd6d32D8cB1fEfe18134B')}]
         })
 
 
