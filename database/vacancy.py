@@ -33,6 +33,14 @@ async def get_table_vacancy(conn: Connection):
         """)
 
 
+async def get_owned_vac_by_uuid(conn: Connection, uuid: UUID):
+    return await conn.fetch("""
+        SELECT cid, type
+        FROM vacancy
+        WHERE owner_uuid = $1;
+        """, uuid)
+
+
 async def isAllowed(conn: Union[Connection, Pool], sender_uuid: UUID, id: int):
     if str(sender_uuid) == (await conn.fetchrow("""
         SELECT owner_uuid
@@ -67,31 +75,6 @@ async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
         return True
     else:
         return False
-
-
-async def create_vac_request(conn: Union[Connection, Pool], clear=False) -> bool:
-    if clear:
-        await conn.execute('DROP TABLE IF EXISTS vac_request')
-    await conn.execute('''
-        CREATE TABLE IF NOT EXISTS vac_request(
-            id                  SERIAL      PRIMARY KEY,
-            ach_uuid            TEXT        DEFAULT '',
-            owner_uuid          TEXT        DEFAULT '',
-            price               INT         NOT NULL,
-            category            TEXT        DEFAULT '',
-            timestamp           TIMESTAMP   DEFAULT NOW(),
-            info                TEXT        NOT NULL,
-            
-        );
-        ''')
-
-
-async def add_vac_request(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str,
-                          ach_uuid: str) -> str:
-    await conn.execute("""
-        INSERT INTO vacancy (owner_uuid, ach_uuid, price, category, info)
-        VALUES ($1, $2, $3, $4, $5);
-        """, owner_uuid, ach_uuid, price, category, info)
 
 
 # what is the defualt type of timestamp?

@@ -8,13 +8,26 @@ class VacancyTemplate:
     info: str
 
 
-class VacancyAdd:
+class Vacancy:
     address: str
     chainId: int
+    blockchain: str
     price: int
     category: str
     info: str
-    return_trans: bool
+
+
+class VacancyAdd:
+    address: str
+    chainId: int
+    blockchain: str
+    sbt_id: UUID
+    txHash: str
+
+
+class GetVacancy:
+    address: str
+    chainId: int
 
 
 class VacancyEdit:
