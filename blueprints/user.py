@@ -19,7 +19,7 @@ user = Blueprint("user", url_prefix="/user")
 async def check_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+        if await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({"uuid": 1})
     return empty(409)
 
