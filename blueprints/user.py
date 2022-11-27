@@ -58,7 +58,7 @@ async def email(request: Request):
                               request.app.config.get('e_pass'))
         if not em:
             return json({'error': 'Email error'}, 411)
-        await add_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), h_email, e_token, h_g_token)
+        await add_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), h_email, e_token.hex, h_g_token)
         return json({"uid": 1})
 
 

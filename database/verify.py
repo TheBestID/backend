@@ -37,7 +37,7 @@ async def get_table_verify(conn: Connection):
         """)
 
 
-async def add_verify(conn: Connection, address: str, chainId: int, blockchain: str, hash_email: str, email_token: UUID,
+async def add_verify(conn: Connection, address: str, chainId: int, blockchain: str, hash_email: str, email_token: str,
                      github_token: str):
     await conn.execute("""
         INSERT INTO verify (address, chainid, blockchain, hash_email, email_token, github_token)
