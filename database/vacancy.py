@@ -41,13 +41,34 @@ async def get_owned_vac_by_uuid(conn: Connection, uuid: UUID):
         """, uuid)
 
 
-async def get_vacancy(conn: Union[Connection, Pool]) -> list:
+async def get_vacancies_page(conn: Union[Connection, Pool]) -> list:
     return await conn.fetch("""
         SELECT sbt_id::TEXT, owner_uuid::TEXT, price, category, time::TEXT
         FROM vacancy
         ORDER BY time DESC
         LIMIT 5;
         """)
+
+
+async def get_vacancy(conn: Union[Connection, Pool], sbt_id: int):
+    cid = (await conn.fetchrow("""
+        SELECT cid
+        FROM vacancy WHERE sbt_id = $1;
+        """, sbt_id)).get('cid')
+    data = getFromIpfs(cid)
+    return json(
+        {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
+         'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
+
+
+############################################
+
+async def isCreated(conn: Union[Connection, Pool], sbt_id: int) -> bool:
+    return bool(await conn.fetchrow("""
+        SELECT sbt_id
+        FROM vacancy
+        WHERE id = $1;
+        """, sbt_id))
 
 
 async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int, top_number: int,
@@ -87,26 +108,15 @@ async def addSBTvac():
     pass
 
 
+# what is the defualt type of timestamp?
+
+
 async def getUuidByid(conn: Union[Connection, Pool], id: int):
     return (await conn.fetchrow("""
         SELECT ach_uuid
         FROM vacancy
         WHERE id = $1;
         """, id)).get('ach_uuid')
-
-
-async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
-    if (await conn.fetchrow("""
-        SELECT id
-        FROM vacancy
-        WHERE id = $1;
-        """, id)):
-        return True
-    else:
-        return False
-
-
-# what is the defualt type of timestamp?
 
 
 async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str,
@@ -125,6 +135,8 @@ async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: in
 
 
 # doesn't work correctly
+
+
 async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str, sort_value: str, sort_value_int: str,
                                    offset_number: int, top_number: int, in_asc: bool) -> list:
     return await conn.fetch("""
@@ -147,17 +159,6 @@ async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str
     #         SELECT owner_uuid, price, category, timestamp::TEXT
     #         FROM vacancy WHERE $1 = $2 ORDER BY $3 DESC LIMIT $4 OFFSET $5 ROW;
     #         """, sort_type, sort_value, sort_value_int, top_number, offset_number)
-
-
-# async def get_vacancy(conn: Union[Connection, Pool], id: int):
-#     cid = (await conn.fetchrow("""
-#         SELECT ipfs_cid
-#         FROM vacancy WHERE id = $1;
-#         """, id)).get('ipfs_cid')
-#     data = getFromIpfs(cid)
-#     return json(
-#         {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
-#          'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
 
 
 # change create_dump: add ach_uuid!!!

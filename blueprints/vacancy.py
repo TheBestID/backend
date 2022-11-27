@@ -8,7 +8,8 @@ from sanic_ext import openapi
 from web3 import Web3
 
 from database.users import get_uuid, checkReg
-from database.vacancy import clear_database, get_database, edit_vacancy, isAllowed, isCreated, get_owned_vac_by_uuid
+from database.vacancy import clear_database, get_database, edit_vacancy, isAllowed, isCreated, get_owned_vac_by_uuid, \
+    get_vacancies_page
 from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy, \
     getUuidByid
 from database.vacancy_request import add_vac_request, transfer_to_vacancy
@@ -88,22 +89,26 @@ async def get_owned_vacancy(request: Request):
 @vacancy.post("/get_vacancies")
 async def get_vacancies(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        return json(list(map(dict, await get_vacancy(conn))))
+        return json(list(map(dict, await get_vacancies_page(conn))))
 
 
-@vacancy.get("/get_bd")
-async def get_bd(request: Request):
+@vacancy.post("/get_vacancy_by_id")
+@openapi.body({"application/json": GetPreviewsByID}, required=True)
+async def get_preview_by_id(request: Request):
+    r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        return json(list(map(dict, await get_database(conn))))
+        if not await isCreated(conn, r.get('sbt_id')):
+            return empty(409)
+        return await get_vacancy(conn, r.get('sbt_id'))
 
 
-@vacancy.post("/get_previews_sortby_one")
-@openapi.body({"application/json": GetPreviews}, required=True)
-async def get_previews_sort_by_one(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        r = request.json
-        return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'),
-                                                                  r.get('top_number'), r.get('in_asc')))))
+# @vacancy.post("/get_previews_sortby_one")
+# @openapi.body({"application/json": GetPreviews}, required=True)
+# async def get_previews_sort_by_one(request: Request):
+#     async with request.app.config.get('POOL').acquire() as conn:
+#         r = request.json
+#         return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'),
+#                                                                   r.get('top_number'), r.get('in_asc')))))
 
 
 # @vacancy.post("/get_previews_sortby_two")
@@ -116,14 +121,10 @@ async def get_previews_sort_by_one(request: Request):
 #                                                                   r.get('top_number'), r.get('in_asc')))))
 
 
-@vacancy.post("/get_vacancy_by_id")
-@openapi.body({"application/json": GetPreviewsByID}, required=True)
-async def get_preview_by_id(request: Request):
+@vacancy.get("/get_bd")
+async def get_bd(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        r = request.json
-        if await isCreated(conn, r.get('id')):
-            return await get_vacancy(conn, r.get('id'))
-    return empty(409, {'error': 'no vacancy with such id'})
+        return json(list(map(dict, await get_database(conn))))
 
 
 @vacancy.post("/edit_vacancy")
