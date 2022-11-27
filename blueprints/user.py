@@ -114,10 +114,13 @@ async def add(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if not await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet isn't verified"}, 409)
+
         if await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet is already verified"}, 408)
-        if await check_in_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
-            return json({'error': "Wallet isn't verified"}, 409)
+
+        if not await check_in_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+            return json({'error': "Wallet isn't verified"}, 411)
+
         await reg_user(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
         await del_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
     return json({"uid": 1})
