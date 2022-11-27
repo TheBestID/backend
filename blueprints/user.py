@@ -74,38 +74,43 @@ async def msg_params(request: Request):
         if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('hash_email'),
                                   r.get('email_token'), r.get('github_token')):
             return json({'error': 'Verification error'}, 408)
-        uuid = uuid4()
-        await add_user(conn, r.get('address'), r.get('chainId'), uuid, r.get('blockchain'))
 
-    if r.get('blockchain').lower() == 'eth':
-        tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
-                                                               uuid.int).build_transaction(
-            {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
-        stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
-        txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
-        w3.eth.wait_for_transaction_receipt(txHash)
+        if r.get('blockchain').lower() == 'eth':
 
-        data = request.app.config.get('contract').functions.claim(
-            [r.get('hash_email'), r.get('github_token')]).build_transaction(
-            {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address'))),
-             'from': to_checksum_address(r.get('address'))})
+            if not await check_in_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+                uuid = uuid4()
+                tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
+                                                                       uuid.int).build_transaction(
+                    {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
+                stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
+                txHash = w3.eth.send_raw_transaction(stx.rawTransaction)
+                w3.eth.wait_for_transaction_receipt(txHash)
 
-        data['value'] = to_hex(data['value'])
-        data['gas'] = to_hex(data['gas'])
-        data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
-        data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
-        data['chainId'] = to_hex(data['chainId'])
-        data['nonce'] = to_hex(data['nonce'])
-        return json(data)
+                await add_user(conn, r.get('address'), r.get('chainId'), uuid, r.get('blockchain'))
 
-    if r.get('blockchain').lower() == 'near':
-        request.app.config.get('near_acc').function_call(request.app.config.get('near_contract'), "mint",
-                                                         [uuid.int, r.get('address')])
-        return json({'contractId': request.app.get('near_contract'),
-                     'method': 'claim',
-                     'args': [r.get('hash_email'), r.get('github_token')],
-                     'gas': 1e14,
-                     'deposit': 0})
+            data = request.app.config.get('contract').functions.claim(
+                [r.get('hash_email'), r.get('github_token')]).build_transaction(
+                {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address'))),
+                 'from': to_checksum_address(r.get('address'))})
+
+            data['value'] = to_hex(data['value'])
+            data['gas'] = to_hex(data['gas'])
+            data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
+            data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
+            data['chainId'] = to_hex(data['chainId'])
+            data['nonce'] = to_hex(data['nonce'])
+
+            return json(data)
+
+        if r.get('blockchain').lower() == 'near':
+            uuid = uuid4()
+            request.app.config.get('near_acc').function_call(request.app.config.get('near_contract'), "mint",
+                                                             [uuid.int, r.get('address')])
+            return json({'contractId': request.app.get('near_contract'),
+                         'method': 'claim',
+                         'args': [r.get('hash_email'), r.get('github_token')],
+                         'gas': 1e14,
+                         'deposit': 0})
 
 
 @user.post("/add")
