@@ -69,7 +69,7 @@ async def msg_params(request: Request):
     print(r)
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+        if await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': 'Wallet is already registered'}, 409)
         if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('hash_email'),
                                   r.get('email_token'), r.get('github_token')):
