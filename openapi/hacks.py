@@ -1,6 +1,7 @@
 class AddHack:
     address: str
     chainId: int
+    blockchain: str
     theme: str
     base_color: str
     font_head: str
