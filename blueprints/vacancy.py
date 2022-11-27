@@ -1,7 +1,7 @@
 from json import dumps
 from uuid import uuid4, UUID
 
-from eth_utils import to_hex
+from eth_utils import to_hex, to_checksum_address
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
@@ -25,7 +25,7 @@ async def get_bd(request: Request):
 
 
 @vacancy.post("/add_params")
-@openapi.body({"application/json": Achievement}, required=True)
+@openapi.body({"application/json": VacancyAdd}, required=True)
 async def add_achievement_params(request: Request):
     r = request.json
     w3 = request.app.config.get('web3')
