@@ -77,3 +77,4 @@ if __name__ == "__main__":
     print('QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi' == 'QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi')
 
     data = create_dump('username', 'my description', False, attributes=[{'some info': 'my info'}])
+    
