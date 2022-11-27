@@ -66,6 +66,7 @@ async def email(request: Request):
 @openapi.body({"application/json": UserCheck}, required=True)
 async def msg_params(request: Request):
     r = request.json
+    print(r)
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
