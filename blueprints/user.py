@@ -79,7 +79,7 @@ async def msg_params(request: Request):
         uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid)
 
-    if r.get('blockchain') == 'ETH' or 'eth':
+    if r.get('blockchain') == 'ETH':
         tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
                                                                uuid.int).build_transaction(
             {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
