@@ -68,7 +68,7 @@ async def transfer_to_vacancy(conn: Union[Connection, Pool], sbt_id: UUID, owner
 
     if data:
         await conn.execute("""
-            INSERT INTO achievements (sbt_id, owner_uuid, cid, price, category, tx_hash)
+            INSERT INTO vacancy (sbt_id, owner_uuid, cid, price, category, tx_hash)
             VALUES ($1, $2, $3, $4, $5, $6);
             """, data['sbt_id'], data['owner_uuid'], data['cid'], data['price'], data['category'], tx_hash)
         await conn.execute("""

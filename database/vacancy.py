@@ -41,6 +41,35 @@ async def get_owned_vac_by_uuid(conn: Connection, uuid: UUID):
         """, uuid)
 
 
+async def get_vacancy(conn: Union[Connection, Pool]) -> list:
+    return await conn.fetch("""
+        SELECT sbt_id::TEXT, owner_uuid::TEXT price, category, time::TEXT
+        FROM vacancy
+        ORDER BY time DESC
+        LIMIT 5
+        """)
+
+
+async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int, top_number: int,
+                                   in_asc: bool) -> list:
+    if in_asc:
+        return await conn.fetch("""
+            SELECT sbt_id::TEXT, owner_uuid::TEXT price, category, time::TEXT
+            FROM vacancy 
+            ORDER BY $1 ASC 
+            LIMIT $2 
+            OFFSET $3 ROW;
+            """, sort_value, top_number, offset_number)
+    else:
+        return await conn.fetch("""
+            SELECT sbt_id::TEXT, owner_uuid::TEXT price, category, time::TEXT
+            FROM vacancy 
+            ORDER BY $1 DESC 
+            LIMIT $2 
+            OFFSET $3 ROW;
+            """, sort_value, top_number, offset_number)
+
+
 async def isAllowed(conn: Union[Connection, Pool], sender_uuid: UUID, id: int):
     if str(sender_uuid) == (await conn.fetchrow("""
         SELECT owner_uuid
@@ -78,6 +107,8 @@ async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
 
 
 # what is the defualt type of timestamp?
+
+
 async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str,
                       ach_uuid: str, key) -> str:
     data = create_dump('username', info, False,
@@ -91,26 +122,6 @@ async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: in
         """, owner_uuid, ach_uuid, price, category, info, cid)
 
     return cid
-
-
-async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int, top_number: int,
-                                   in_asc: bool) -> list:
-    if in_asc:
-        return await conn.fetch("""
-            SELECT id, owner_uuid, price, category, timestamp::TEXT
-            FROM vacancy 
-            ORDER BY $1 ASC 
-            LIMIT $2 
-            OFFSET $3 ROW;
-            """, sort_value, top_number, offset_number)
-    else:
-        return await conn.fetch("""
-            SELECT id, owner_uuid, price, category, timestamp::TEXT
-            FROM vacancy 
-            ORDER BY $1 DESC 
-            LIMIT $2 
-            OFFSET $3 ROW;
-            """, sort_value, top_number, offset_number)
 
 
 # doesn't work correctly

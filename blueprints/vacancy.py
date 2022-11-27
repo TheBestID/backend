@@ -73,7 +73,7 @@ async def add_achievement(request: Request):
 
 @vacancy.post("/get_owned_vacancy")
 @openapi.body({"application/json": GetVacancy}, required=True)
-async def get_owned_achievement(request: Request):
+async def get_owned_vacancy(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
         if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
@@ -83,6 +83,12 @@ async def get_owned_achievement(request: Request):
         ach = await get_owned_vac_by_uuid(conn, uuid)
         data = [getFromIpfs(i['cid']) for i in ach]
         return json({'data': data})
+
+
+@vacancy.post("/get_vacancies")
+async def get_vacancies(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        return json(list(map(dict, await get_vacancy(conn))))
 
 
 @vacancy.get("/get_bd")
@@ -100,14 +106,14 @@ async def get_previews_sort_by_one(request: Request):
                                                                   r.get('top_number'), r.get('in_asc')))))
 
 
-@vacancy.post("/get_previews_sortby_two")
-@openapi.body({"application/json": GetPreviewsBySTR}, required=True)
-async def get_previews_sortby_two(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        r = request.json
-        return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type1'), r.get('sort_value1'),
-                                                                  r.get('sort_value2'), r.get('offset_number'),
-                                                                  r.get('top_number'), r.get('in_asc')))))
+# @vacancy.post("/get_previews_sortby_two")
+# @openapi.body({"application/json": GetPreviewsBySTR}, required=True)
+# async def get_previews_sortby_two(request: Request):
+#     async with request.app.config.get('POOL').acquire() as conn:
+#         r = request.json
+#         return json(list(map(dict, await get_previews_sort_by_str(conn, r.get('sort_type1'), r.get('sort_value1'),
+#                                                                   r.get('sort_value2'), r.get('offset_number'),
+#                                                                   r.get('top_number'), r.get('in_asc')))))
 
 
 @vacancy.post("/get_vacancy_by_id")
