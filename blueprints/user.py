@@ -6,7 +6,7 @@ from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
-from database.users import check, add_user, reg_user, checkReg
+from database.users import check, add_user, reg_user, checkReg, get_uuid
 from database.verify import add_verify, check_verify, del_verify, check_in_verify
 from openapi.user import UserCheck, GetUser
 from utils import hashing, git_token, send_email
@@ -20,7 +20,8 @@ async def check_user(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
         if await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
-            return json({"uuid": 1})
+            uid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
+            return json({"uuid": uid.hex})
     return empty(409)
 
 
