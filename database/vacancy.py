@@ -149,15 +149,15 @@ async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str
     #         """, sort_type, sort_value, sort_value_int, top_number, offset_number)
 
 
-async def get_vacancy(conn: Union[Connection, Pool], id: int):
-    cid = (await conn.fetchrow("""
-        SELECT ipfs_cid
-        FROM vacancy WHERE id = $1;
-        """, id)).get('ipfs_cid')
-    data = getFromIpfs(cid)
-    return json(
-        {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
-         'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
+# async def get_vacancy(conn: Union[Connection, Pool], id: int):
+#     cid = (await conn.fetchrow("""
+#         SELECT ipfs_cid
+#         FROM vacancy WHERE id = $1;
+#         """, id)).get('ipfs_cid')
+#     data = getFromIpfs(cid)
+#     return json(
+#         {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
+#          'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
 
 
 # change create_dump: add ach_uuid!!!
