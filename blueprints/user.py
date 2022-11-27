@@ -21,9 +21,10 @@ user = Blueprint("user", url_prefix="/user")
 # @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, request.json.get('address'), request.json.get('chainId')):
+        if await check(conn, request.json.get('address'), request.json.get('chainId'), request.json.get('blockchain')):
             return json({"uuid": 1})
     return empty(409)
+
 
 
 @user.post("/get")
@@ -48,7 +49,7 @@ async def get_user(request: Request):
 async def email(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address'), r.get('chainId')):
+        if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': 'Wallet is already registered'}, 409)
         e_token = uuid4()
         g_token = await git_token(r.get('githubCode'))
@@ -71,13 +72,13 @@ async def msg_params(request: Request):
     print(r)
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, r.get('address'), r.get('chainId')):
+        if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': 'Wallet is already registered'}, 409)
         # if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('hash_email'), r.get('email_token'),
         #                           r.get('github_token')):
         #     return json({'error': 'Verification error'}, 408)
         uuid = uuid4()
-        await add_user(conn, r.get('address'), r.get('chainId'), uuid)
+        await add_user(conn, r.get('address'), r.get('chainId'), uuid, r.get('blockchain'))
 
     if r.get('blockchain') == 'ETH':
         tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
@@ -100,7 +101,7 @@ async def msg_params(request: Request):
         data['nonce'] = to_hex(data['nonce'])
         return json(data)
 
-    if r.get('blockchain') == 'NEAR' or 'near':
+    if r.get('blockchain') == 'NEAR' or r.get('blockchain') == 'near':
         request.app.config.get('near_acc').function_call(request.app.get('near_contract'), "mint", [])
         return json({'contractId': request.app.get('near_contract'),
                      'method': 'claim',
@@ -116,12 +117,12 @@ async def msg_params(request: Request):
 async def add(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await check(conn, r.get('address'), r.get('chainId')):
+        if not await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet isn't verified"}, 409)
         if await checkReg(conn, r.get('address'), r.get('chainId')):
             return json({'error': "Wallet is already verified"}, 408)
         if await check_in_verify(conn, r.get('address'), r.get('chainId')):
             return json({'error': "Wallet isn't verified"}, 409)
-        await reg_user(conn, r.get('address'), r.get('chainId'))
+        await reg_user(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
         await del_verify(conn, r.get('address'), r.get('chainId'))
     return json({"uid": 1})
