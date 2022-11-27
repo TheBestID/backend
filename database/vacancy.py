@@ -66,6 +66,7 @@ async def get_vacancy(conn: Union[Connection, Pool], sbt_id: int):
         FROM vacancy WHERE sbt_id = $1;
         """, sbt_id)).get('cid')
     data = getFromIpfs(cid)
+    print(data)
     return json(
         {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
          'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})

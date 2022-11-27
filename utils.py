@@ -50,6 +50,7 @@ async def loadToIpfs(data, key):
 
 def getFromIpfs(cid):
     r = requests.get('https://ipfs.io/ipfs/' + cid)
+    print(r.content)
     return json.loads(r.content)
 
 
