@@ -99,7 +99,8 @@ async def msg_params(request: Request):
         return json(data)
 
     if r.get('blockchain').lower() == 'near':
-        request.app.config.get('near_acc').function_call(request.app.get('near_contract'), "mint", [])
+        request.app.config.get('near_acc').function_call(request.app.get('near_contract'), "mint",
+                                                         [uuid.int, r.get('address')])
         return json({'contractId': request.app.get('near_contract'),
                      'method': 'claim',
                      'args': [r.get('hash_email'), r.get('github_token')],
