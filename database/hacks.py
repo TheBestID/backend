@@ -30,7 +30,7 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS hacks(
-            id                  SERIAL      PRIMARY KEY,
+            id                  UUID        KEY,
             owner_uuid          UUID        NOT NULL,
             theme               TEXT        DEFAULT 'Dark',
             base_color          TEXT        DEFAULT 'White',
@@ -48,7 +48,10 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
             social_link         TEXT        DEFAULT '',
             category            TEXT        DEFAULT '',
             timestamp           TIMESTAMP   DEFAULT NOW(),
-            type                TEXT        DEFAULT 'default'
+            start_date          TEXT        NOT NULL,
+            end_date            TEXT        NOT NULL,
+            tx_hash             TEXT        NOT NULL
+            
         );
         ''')
 
@@ -141,7 +144,7 @@ async def delete_hack(conn: Union[Connection, Pool], id: int):
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
     return await conn.fetch("""
-        SELECT id, owner_uuid::TEXT , price, category, timestamp::TEXT , description
+        SELECT id::TEXT, owner_uuid::TEXT , price, category, timestamp::TEXT , description
         FROM hacks;
         """)
 

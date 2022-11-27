@@ -1,3 +1,5 @@
+from uuid import UUID
+
 class AddHack:
     address: str
     chainId: int
@@ -17,6 +19,8 @@ class AddHack:
     task_descr: str
     social_link: str
     category: str
+    start_date: str
+    end_date: str
 
 
 class CreateTable:
@@ -41,3 +45,11 @@ class SortByStr:
 
 class GetById:
     id: int
+
+
+class AddHack_last:
+    address: str
+    chainId: int
+    blockchain: str
+    txHash: str
+    hack_id: UUID
