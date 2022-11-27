@@ -65,10 +65,13 @@ async def get_vacancy(conn: Union[Connection, Pool], sbt_id: int):
         SELECT cid
         FROM vacancy WHERE sbt_id = $1;
         """, sbt_id)).get('cid')
-    data = getFromIpfs(cid)
+    #data = getFromIpfs(cid)
+    # return json(
+    #     {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
+    #      'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
     return json(
-        {'owner_uuid': data.get('attributes')[1].get('owner_uuid'), 'price': data.get('attributes')[3].get('price'),
-         'category': data.get('attributes')[2].get('category'), 'info': data.get('description'), 'id': id})
+        {'owner_uuid': 'owner_uuid', 'price': 666,
+         'category': 'category', 'info': 'description', 'id': sbt_id})
 
 
 async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int, top_number: int,
