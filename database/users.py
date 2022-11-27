@@ -17,6 +17,7 @@ async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool
         CREATE TABLE IF NOT EXISTS users(
             address             TEXT        PRIMARY KEY,
             chainid             INT         NOT NULL,
+            blockchain          TEXT        DEFAULT '',
             uuid                UUID        NOT NULL,
             registered          BOOL        DEFAULT False,
             cid_cv              TEXT        DEFAULT ''
@@ -31,40 +32,42 @@ async def get_table_users(conn: Union[Connection, Pool]) -> list:
     :return:
     """
     return await conn.fetch("""
-        SELECT address, chainid, registered, uuid::TEXT
+        SELECT address, chainid, registered, uuid::TEXT, blockchain
         FROM users;
         """)
 
 
-async def add_user(conn: Union[Connection, Pool], address: str, chainId: str, uuid: UUID):
+async def add_user(conn: Union[Connection, Pool], address: str, chainId: str, uuid: UUID, blockchain: str):
     """
     :param conn:
     :param chainId:
     :param uuid:
     :param address:
+    :param blockchain:
     :return:
     """
     await conn.execute("""
-        INSERT INTO users (address, chainid, uuid)
-        VALUES ($1, $2, $3)
-        """, str(address).lower(), int(chainId), uuid)
+        INSERT INTO users (address, chainid, uuid, blockchain)
+        VALUES ($1, $2, $3, $4)
+        """, str(address).lower(), int(chainId), uuid, blockchain.lower())
 
 
-async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID):
+async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID, blockchain: str):
     """
     :param conn:
     :param chainId:
     :param address:
+    :param blockchain:
     :return:
     """
     await conn.execute("""
         UPDATE users 
         SET registered = True
-        WHERE address = $1 AND chainid = $2;
-        """, str(address).lower(), int(chainId))
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower())
 
 
-async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
+async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str,  blockchain: str) -> bool:
     """
     :param conn:
     :param address:
@@ -74,15 +77,15 @@ async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str) ->
     # res = await conn.fetchrow("""
     #     SELECT registered
     #     FROM users
-    #     WHERE address = $1 AND chainid = $2;
-    #     """, str(address).lower(), int(chainId))
+    #     WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+    #     """, str(address).lower(), int(chainId), blockchain.lower())
     # if res:
     #     return res['registered']
     # return False
     return True
 
 
-async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bool:
+async def check(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> bool:
     """
     :param conn:
     :param address:
@@ -92,8 +95,8 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str) -> bo
     return bool(await conn.fetchrow("""
         SELECT uuid
         FROM users
-        WHERE address = $1 AND chainid = $2;
-        """, str(address).lower(), int(chainId)))
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower()))
 
 
 async def clear_users(conn: Union[Connection, Pool]):
@@ -107,7 +110,7 @@ async def clear_users(conn: Union[Connection, Pool]):
     return
 
 
-async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str) -> Union[UUID, None]:
+async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> Union[UUID, None]:
     """
     :param chainId:
     :param address:
@@ -117,8 +120,8 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str) ->
     res = await conn.fetchrow("""
         SELECT uuid
         FROM users
-        WHERE address = $1 AND chainid = $2;
-        """, str(address).lower(), int(chainId))
+        WHERE address = $1 AND chainid = $2 AND blokchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower())
     if res:
         return res.get('uuid')
     return None
