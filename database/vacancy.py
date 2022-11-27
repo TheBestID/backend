@@ -43,10 +43,10 @@ async def get_owned_vac_by_uuid(conn: Connection, uuid: UUID):
 
 async def get_vacancy(conn: Union[Connection, Pool]) -> list:
     return await conn.fetch("""
-        SELECT sbt_id::TEXT, owner_uuid::TEXT price, category, time::TEXT
+        SELECT sbt_id::TEXT, owner_uuid::TEXT, price, category, time::TEXT
         FROM vacancy
         ORDER BY time DESC
-        LIMIT 5
+        LIMIT 5;
         """)
 
 
