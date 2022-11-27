@@ -104,8 +104,8 @@ async def msg_params(request: Request):
         return json({'contractId': request.app.get('near_contract'),
                      'method': 'claim',
                      'args': [r.get('hash_email'), r.get('github_token')],
-                     'gas': 1,
-                     'deposit': 100})
+                     'gas': 1e14,
+                     'deposit': 0})
 
 
 @user.post("/add")

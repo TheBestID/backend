@@ -15,5 +15,5 @@ account = near_api.account.Account(near_provider, signer, signer_id)
 
 # out = account.function_call(contract_id, "ping", [])
 
-# print(account.view_function(contract_id, "ping", []))
+print(account.view_function(contract_id, "ping_string", []))
 # print(out)
