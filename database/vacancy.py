@@ -64,6 +64,31 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
     return True
 
 
+async def create_vac_request(conn: Union[Connection, Pool], clear=False) -> bool:
+    if clear:
+        await conn.execute('DROP TABLE IF EXISTS vac_request')
+    await conn.execute('''
+        CREATE TABLE IF NOT EXISTS vac_request(
+            id                  SERIAL      PRIMARY KEY,
+            ach_uuid            TEXT        DEFAULT '',
+            owner_uuid          TEXT        DEFAULT '',
+            price               INT         NOT NULL,
+            category            TEXT        DEFAULT '',
+            timestamp           TIMESTAMP   DEFAULT NOW(),
+            info                TEXT        NOT NULL,
+            
+        );
+        ''')
+
+
+async def add_vac_request(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str,
+                      ach_uuid: str) -> str:
+    await conn.execute("""
+        INSERT INTO vacancy (owner_uuid, ach_uuid, price, category, info)
+        VALUES ($1, $2, $3, $4, $5);
+        """, owner_uuid, ach_uuid, price, category, info)
+
+
 # what is the defualt type of timestamp?
 async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str,
                       ach_uuid: str, key) -> str:
