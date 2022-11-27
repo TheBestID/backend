@@ -17,7 +17,7 @@ async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool
         CREATE TABLE IF NOT EXISTS users(
             address             TEXT        PRIMARY KEY,
             chainid             INT         NOT NULL,
-            blockchain          TEXT        DEFAULT '',
+            blockchain          TEXT        NOT NULL,
             uuid                UUID        NOT NULL,
             registered          BOOL        DEFAULT False,
             cid_cv              TEXT        DEFAULT ''
@@ -32,7 +32,7 @@ async def get_table_users(conn: Union[Connection, Pool]) -> list:
     :return:
     """
     return await conn.fetch("""
-        SELECT address, chainid, registered, uuid::TEXT, blockchain
+        SELECT address, chainid, blockchain, registered, uuid::TEXT, blockchain
         FROM users;
         """)
 
@@ -67,22 +67,22 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID, b
         """, str(address).lower(), int(chainId), blockchain.lower())
 
 
-async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str,  blockchain: str) -> bool:
+async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> bool:
     """
     :param conn:
     :param address:
     :param chainId:
+    :param blockchain:
     :return:
     """
-    # res = await conn.fetchrow("""
-    #     SELECT registered
-    #     FROM users
-    #     WHERE address = $1 AND chainid = $2 AND blockchain = $3;
-    #     """, str(address).lower(), int(chainId), blockchain.lower())
-    # if res:
-    #     return res['registered']
-    # return False
-    return True
+    res = await conn.fetchrow("""
+        SELECT registered
+        FROM users
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower())
+    if res:
+        return res.get('registered')
+    return False
 
 
 async def check(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> bool:
@@ -90,6 +90,7 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str, block
     :param conn:
     :param address:
     :param chainId:
+    :param blockchain:
     :return:
     """
     return bool(await conn.fetchrow("""
@@ -99,22 +100,12 @@ async def check(conn: Union[Connection, Pool], address: str, chainId: str, block
         """, str(address).lower(), int(chainId), blockchain.lower()))
 
 
-async def clear_users(conn: Union[Connection, Pool]):
-    """
-    :param conn:
-    :return:
-    """
-    await conn.execute("""
-        DELETE FROM users;
-        """)
-    return
-
-
 async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> Union[UUID, None]:
     """
     :param chainId:
     :param address:
     :param conn:
+    :param blockchain:
     :return:
     """
     res = await conn.fetchrow("""

@@ -6,8 +6,7 @@ from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
-from database.userinfo import get_info
-from database.users import check, add_user, get_uuid, reg_user, checkReg
+from database.users import check, add_user, reg_user, checkReg
 from database.verify import add_verify, check_verify, del_verify, check_in_verify
 from openapi.user import UserCheck, GetUser
 from utils import hashing, git_token, send_email
@@ -17,14 +16,12 @@ user = Blueprint("user", url_prefix="/user")
 
 @user.post("/check")
 @openapi.body({"application/json": UserCheck}, required=True)
-# @openapi.response(200, {"application/json": UserCheck}, description='Wallet is registered')
-# @openapi.response(409, description="Wallet isn't registered")
 async def check_user(request: Request):
+    r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if await check(conn, request.json.get('address'), request.json.get('chainId'), request.json.get('blockchain')):
+        if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({"uuid": 1})
     return empty(409)
-
 
 
 @user.post("/get")
@@ -61,7 +58,7 @@ async def email(request: Request):
                               request.app.config.get('e_pass'))
         if not em:
             return json({'error': 'Email error'}, 411)
-        await add_verify(conn, r.get('address'), r.get('chainId'), h_email, e_token, h_g_token)
+        await add_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), h_email, e_token, h_g_token)
         return json({"uid": 1})
 
 
@@ -69,18 +66,17 @@ async def email(request: Request):
 @openapi.body({"application/json": UserCheck}, required=True)
 async def msg_params(request: Request):
     r = request.json
-    print(r)
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
         if await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': 'Wallet is already registered'}, 409)
-        # if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('hash_email'), r.get('email_token'),
-        #                           r.get('github_token')):
-        #     return json({'error': 'Verification error'}, 408)
+        if not await check_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('hash_email'),
+                                  r.get('email_token'), r.get('github_token')):
+            return json({'error': 'Verification error'}, 408)
         uuid = uuid4()
         await add_user(conn, r.get('address'), r.get('chainId'), uuid, r.get('blockchain'))
 
-    if r.get('blockchain') == 'ETH':
+    if r.get('blockchain').lower() == 'eth':
         tx = request.app.config.get('contract').functions.mint(to_checksum_address(r.get('address')),
                                                                uuid.int).build_transaction(
             {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address)})
@@ -101,7 +97,7 @@ async def msg_params(request: Request):
         data['nonce'] = to_hex(data['nonce'])
         return json(data)
 
-    if r.get('blockchain') == 'NEAR' or r.get('blockchain') == 'near':
+    if r.get('blockchain').lower() == 'near':
         request.app.config.get('near_acc').function_call(request.app.get('near_contract'), "mint", [])
         return json({'contractId': request.app.get('near_contract'),
                      'method': 'claim',
@@ -112,17 +108,15 @@ async def msg_params(request: Request):
 
 @user.post("/add")
 @openapi.body({"application/json": UserCheck}, required=True)
-# @openapi.response(200, {"application/json": UserAddressR200}, 'OK')
-# @openapi.response(409, description='Wallet is already registered')
 async def add(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
         if not await check(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet isn't verified"}, 409)
-        if await checkReg(conn, r.get('address'), r.get('chainId')):
+        if await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet is already verified"}, 408)
-        if await check_in_verify(conn, r.get('address'), r.get('chainId')):
+        if await check_in_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet isn't verified"}, 409)
         await reg_user(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
-        await del_verify(conn, r.get('address'), r.get('chainId'))
+        await del_verify(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
     return json({"uid": 1})
