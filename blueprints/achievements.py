@@ -22,14 +22,14 @@ async def add_achievement_params(request: Request):
     r = request.json
     w3 = request.app.config.get('web3')
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('from_address'), r.get('chainId')):
+        if not await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "From wallet isn't registered"}, 409)
         # if not await checkReg(conn, r.get('to_address'), r.get('chainId')):
         #     return json({'error': "To wallet isn't registered"}, 409)
 
         ach_uuid = uuid4()
-        from_uuid = await get_uuid(conn, r.get('from_address'), r.get('chainId'))
-        to_uuid = await get_uuid(conn, r.get('to_address'), r.get('chainId'))
+        from_uuid = await get_uuid(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
+        to_uuid = await get_uuid(conn, r.get('to_address'), r.get('chainId'), r.get('blockchain'))
         ach_type = ''
         verifier = 0
         cid = await loadToIpfs(dumps(r.get('data')), request.app.config['account'].key)
@@ -61,10 +61,10 @@ async def add_achievement_params(request: Request):
 async def add_achievement(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('address'), r.get('chainId')):
+        if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "Wallet isn't registered"}, 409)
 
-        from_uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
+        from_uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
         trans = await transfer_to_achievements(conn, r.get('sbt_id'), from_uuid, r.get('txHash'))
         if not trans:
             return json({'error': "SBTid not found"}, 411)
@@ -76,10 +76,10 @@ async def add_achievement(request: Request):
 async def get_owned_achievement(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('address'), r.get('chainId')):
+        if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "From wallet isn't registered"}, 409)
 
-        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
+        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
         ach = await get_owned_ach_by_uuid(conn, uuid)
         data = [getFromIpfs(i['cid']) for i in ach]
         return json({'data': data})
@@ -90,10 +90,10 @@ async def get_owned_achievement(request: Request):
 async def get_created_achievement(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('address'), r.get('chainId')):
+        if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "From wallet isn't registered"}, 409)
 
-        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'))
+        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
         ach = await get_created_ach_by_uuid(conn, uuid)
         data = [getFromIpfs(i['cid']) for i in ach]
         return json({'data': data})
