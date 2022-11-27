@@ -9,7 +9,7 @@ from sanic_ext import openapi
 
 from database.achievements import get_owned_ach_by_uuid, get_created_ach_by_uuid
 from database.achievements_request import add_ach_request, transfer_to_achievements
-from database.users import get_uuid, checkReg
+from database.users import get_uuid, checkReg, checkReg_by_uid
 from openapi.achievement import Achievement, GetAchievement, AchievementAdd
 from utils import loadToIpfs, getFromIpfs
 
@@ -68,7 +68,7 @@ async def add_achievement(request: Request):
         trans = await transfer_to_achievements(conn, r.get('sbt_id'), from_uuid, r.get('txHash'))
         if not trans:
             return json({'error': "SBTid not found"}, 411)
-        return json({'uid': 1})
+        return json({'uid': from_uuid.hex})
 
 
 @achievements.post("/get_owned_achievement")
@@ -76,11 +76,9 @@ async def add_achievement(request: Request):
 async def get_owned_achievement(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+        if not await checkReg_by_uid(conn, r.get('uid')):
             return json({'error': "From wallet isn't registered"}, 409)
-
-        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
-        ach = await get_owned_ach_by_uuid(conn, uuid)
+        ach = await get_owned_ach_by_uuid(conn, r.get('uid'))
         data = [getFromIpfs(i['cid']) for i in ach]
         return json({'data': data})
 
