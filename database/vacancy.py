@@ -9,6 +9,30 @@ from utils import create_dump, loadToIpfs, getFromIpfs
 prefix = 'https://ipfs.io/ipfs/'
 
 
+async def create_table_vacancy(conn: Union[Connection, Pool], clear=False) -> bool:
+    if clear:
+        await conn.execute('DROP TABLE IF EXISTS vacancy')
+    await conn.execute('''
+        CREATE TABLE IF NOT EXISTS vacancy(
+            sbt_id              UUID        PRIMARY KEY,
+            owner_uuid          UUID        NOT NULL,
+            cid                 TEXT        NOT NULL,
+            price               INT         NOT NULL,
+            category            TEXT        DEFAULT '',
+            time                TIMESTAMP   DEFAULT NOW(),
+            tx_hash             TEXT        NOT NULL
+        );
+        ''')
+    return True
+
+
+async def get_table_vacancy(conn: Connection):
+    return await conn.fetch("""
+        SELECT sbt_id::TEXT, owner_uuid::TEXT, cid, price, category, time::TEXT, tx_hash
+        FROM vacancy;
+        """)
+
+
 async def isAllowed(conn: Union[Connection, Pool], sender_uuid: UUID, id: int):
     if str(sender_uuid) == (await conn.fetchrow("""
         SELECT owner_uuid
@@ -45,25 +69,6 @@ async def isCreated(conn: Union[Connection, Pool], id: int) -> bool:
         return False
 
 
-async def create(conn: Union[Connection, Pool], clear=False) -> bool:
-    if clear:
-        await conn.execute('DROP TABLE IF EXISTS vacancy')
-    await conn.execute('''
-        CREATE TABLE IF NOT EXISTS vacancy(
-            id                  SERIAL      PRIMARY KEY,
-            ach_uuid            TEXT        DEFAULT '',
-            owner_uuid          TEXT        DEFAULT '',
-            price               INT         NOT NULL,
-            category            TEXT        DEFAULT '',
-            timestamp           TIMESTAMP   DEFAULT NOW(),
-            info                TEXT        NOT NULL,
-            ipfs_cid            TEXT        NOT NULL
-            
-        );
-        ''')
-    return True
-
-
 async def create_vac_request(conn: Union[Connection, Pool], clear=False) -> bool:
     if clear:
         await conn.execute('DROP TABLE IF EXISTS vac_request')
@@ -82,7 +87,7 @@ async def create_vac_request(conn: Union[Connection, Pool], clear=False) -> bool
 
 
 async def add_vac_request(conn: Union[Connection, Pool], owner_uuid: UUID, price: int, category: str, info: str,
-                      ach_uuid: str) -> str:
+                          ach_uuid: str) -> str:
     await conn.execute("""
         INSERT INTO vacancy (owner_uuid, ach_uuid, price, category, info)
         VALUES ($1, $2, $3, $4, $5);

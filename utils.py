@@ -44,7 +44,7 @@ async def loadToIpfs(data, key):
     # return 'IPFS relax but still work ^_^'
     acc = ETHAccount(key)
     hash = await create_store(file_content=bytes(data, 'utf-8'), account=acc, storage_engine="ipfs")
-    print(hash.content.item_hash)
+    # print(hash.content.item_hash)
     return hash.content.item_hash
 
 
