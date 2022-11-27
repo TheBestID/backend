@@ -93,7 +93,7 @@ async def get_bd(request: Request):
 
 @vacancy.post("/get_previews_sortby_one")
 @openapi.body({"application/json": GetPreviews}, required=True)
-async def get_previews_sortby_one(request: Request):
+async def get_previews_sort_by_one(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
         return json(list(map(dict, await get_previews_sort_by_int(conn, r.get('sort_value'), r.get('offset_number'),

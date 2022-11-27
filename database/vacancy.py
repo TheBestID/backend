@@ -95,7 +95,6 @@ async def add_vacancy(conn: Union[Connection, Pool], owner_uuid: UUID, price: in
 
 async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: str, offset_number: int, top_number: int,
                                    in_asc: bool) -> list:
-    # in_asc = True
     if in_asc:
         return await conn.fetch("""
             SELECT id, owner_uuid, price, category, timestamp::TEXT
@@ -104,7 +103,6 @@ async def get_previews_sort_by_int(conn: Union[Connection, Pool], sort_value: st
             LIMIT $2 
             OFFSET $3 ROW;
             """, sort_value, top_number, offset_number)
-
     else:
         return await conn.fetch("""
             SELECT id, owner_uuid, price, category, timestamp::TEXT
