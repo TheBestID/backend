@@ -22,7 +22,7 @@ async def create_table_verify(conn: Union[Connection, Pool], clear=False) -> boo
             chainid             INT         NOT NULL,
             blockchain          TEXT        NOT NULL,
             hash_email          TEXT        NOT NULL,
-            email_token         UUID        NOT NULL,
+            email_token         TEXT        NOT NULL,
             github_token        TEXT        NOT NULL,
             time                TIMESTAMP   DEFAULT NOW()
         );
@@ -32,7 +32,7 @@ async def create_table_verify(conn: Union[Connection, Pool], clear=False) -> boo
 
 async def get_table_verify(conn: Connection):
     return await conn.fetch("""
-        SELECT address, chainid, blockchain, hash_email, email_token::TEXT, github_token, time::TEXT
+        SELECT address, chainid, blockchain, hash_email, email_token, github_token, time::TEXT
         FROM verify;
         """)
 
@@ -48,7 +48,7 @@ async def add_verify(conn: Connection, address: str, chainId: int, blockchain: s
 async def check_verify(conn: Connection, address: str, chainId: int, blockchain: str, hash_email: str,
                        email_token: UUID, github_token: str):
     data = await conn.fetchrow("""
-        SELECT hash_email, email_token::TEXT, github_token, time
+        SELECT hash_email, email_token, github_token, time
         FROM verify
         WHERE address = $1 AND chainid = $2 AND blockchain = $3;
         """, str(address).lower(), int(chainId), blockchain.lower())
