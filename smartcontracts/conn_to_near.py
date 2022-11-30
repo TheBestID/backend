@@ -6,21 +6,30 @@ from web3 import Web3
 
 
 def test():
-    contract_id = "sbt.soul_dev.testnet"
-    signer_id = "sbt.soul_dev.testnet"
-    signer_key = 'ed25519:zXH65UModcNadRDPv7zVKv76tX3u2oZdeY5t2iMyp2Dz73p8ZLdsQPWwm1G7ZD5McFJkMwr9MGJcjLycKBJFJrP'
+    my_key = "ed25519:2Y5S5mdivXGEBZ6WRLE6Bxvpjh57VVvrvdhXst3BqZRP29ZRkHV5wBPQWFpAYnfYTuFTFB8EKVEcn5MiF9csGtbG"
+    my_id = "souldev.testnet"
+
+    contr_key = 'ed25519:zXH65UModcNadRDPv7zVKv76tX3u2oZdeY5t2iMyp2Dz73p8ZLdsQPWwm1G7ZD5McFJkMwr9MGJcjLycKBJFJrP'
+    contr_id = "sbt.soul_dev.testnet"
     args = {'new_id': 123, }
 
     near_provider = near_api.providers.JsonProvider("https://rpc.testnet.near.org")
-    key_pair = near_api.signer.KeyPair(signer_key)
-    signer = near_api.signer.Signer(signer_id, key_pair)
-    account1 = near_api.account.Account(near_provider, signer, signer_id)
+
+    contr_key_pair = near_api.signer.KeyPair(contr_key)
+    contr_signer = near_api.signer.Signer(contr_id, contr_key_pair)
+    account_contr = near_api.account.Account(near_provider, contr_signer, contr_id)
+
+    my_key_pair = near_api.signer.KeyPair(my_key)
+    my_signer = near_api.signer.Signer(my_id, my_key_pair)
+    account_my = near_api.account.Account(near_provider, my_signer, my_id)
+
     # print(account.state)
     # account.access_key['nonce'] = 105106077000002
 
-    out = account1.function_call(contract_id, "mint", [111, 'souldev.testnet'])
+    # out = account1.function_call(contract_id, "burn", ['souldev.testnet'])
+    # print(out)
 
-    # print(account.view_function(contract_id, "ping_string", []))
+    out = account_my.function_call(contr_id, 'burn', [])
     print(out)
 
 
@@ -37,6 +46,6 @@ def __near_mint(contract, account, address: str):
 async def near_claim(contract, hash_email, github_token):
     return {'contractId': contract,
             'method': 'claim',
-            'args': [hash_email, github_token],
+            'args': [github_token, hash_email],
             'gas': 1e14,
             'deposit': 0}

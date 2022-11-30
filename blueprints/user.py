@@ -81,13 +81,12 @@ async def msg_params(request: Request):
         if await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             return json({'error': 'Wallet is already registered'}, 409)
         if not await check_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''),
-                                  r.get('hash_email'),
-                                  r.get('email_token'), r.get('github_token')):
+                                  r.get('hash_email'), r.get('email_token'), r.get('github_token')):
             return json({'error': 'Verification error'}, 408)
 
         if r.get('blockchain', '').lower() == 'eth':
 
-            if not await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+            if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await eth_mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                       request.app.config.get('account_eth'), r.get('address', ''))
                 await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
@@ -97,13 +96,13 @@ async def msg_params(request: Request):
             return json(transact)
 
         if r.get('blockchain', '').lower() == 'near':
-            if not await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
-                uuid = await near_mint(request.app.config.get('contract_near'), request.app.config.get('contract_near'),
+            if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+                uuid = await near_mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
                                        r.get('address', ''))
                 await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
 
-            transact = await near_claim(request.app.config.get('contract_near'), r.get('hash_email'),
-                                        r.get('github_token'))
+            transact = await near_claim(request.app.config.get('contract_near'), r.get('hash_email')[:32],
+                                        r.get('github_token')[:32])
             return json(transact)
 
 
@@ -124,3 +123,18 @@ async def add(request: Request):
         await reg_user(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
         await del_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
     return json({"uid": 1})
+
+# @user.post("/test")
+# @openapi.body({"application/json": UserCheck}, required=True)
+# async def test(request: Request):
+#     r = {
+#         "hash_email": "0xdc0391e075137f31ce642856bcb62ad2036dc4df31d48d7ca08a7eff3246c7ed",
+#         "github_token": "0xb3da07d109597dead06e42475b9dd66b37f11619f8b893d03d78d7be420f2f41"}
+#
+#     uuid = await near_mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
+#                            'souldev.testnet')
+#     transact = await near_claim(request.app.config.get('contract_near'), r.get('hash_email'),
+#                                 r.get('github_token'))
+#     print(uuid)
+#     print(transact)
+#     return empty()

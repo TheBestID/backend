@@ -30,8 +30,8 @@ app.blueprint(admin)
 app.blueprint(achievements)
 
 PK_GOERLY = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
-PK_NEAR = 'ed25519:2SexAZQWQfuxBuSFKwDzmyPc3YRffZM6khQoLK5XtqpBaBQpMHSGzPJUBtkBX9wpqgnP3zWw9nBeA6o9gyKgdsyD'
-signer_id = "souldev.testnet"
+PK_NEAR = 'ed25519:zXH65UModcNadRDPv7zVKv76tX3u2oZdeY5t2iMyp2Dz73p8ZLdsQPWwm1G7ZD5McFJkMwr9MGJcjLycKBJFJrP'
+signer_id = "sbt.soul_dev.testnet"
 
 
 @app.before_server_start
@@ -62,8 +62,8 @@ async def init(app1):
     NEAR
     """
     app1.config['provider_near'] = near_api.providers.JsonProvider("https://rpc.testnet.near.org")
-    app1.config['contract_near']: NEAR_Account = NEAR_Account(app1.config['provider_near'],
-                                                              Signer(signer_id, KeyPair(PK_NEAR)), signer_id)
+    app1.config['account_near']: NEAR_Account = NEAR_Account(app1.config['provider_near'],
+                                                             Signer(signer_id, KeyPair(PK_NEAR)), signer_id)
     app1.config['contract_near'] = "sbt.soul_dev.testnet"
 
     """
