@@ -1,7 +1,7 @@
 from typing import Union
 from uuid import UUID
 
-from asyncpg import Connection, Pool
+from asyncpg import Connection, Pool, Record
 
 
 async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool:
@@ -67,7 +67,7 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID, b
         """, str(address).lower(), int(chainId), blockchain.lower())
 
 
-async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> UUID:
+async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> Record:
     """
     :param conn:
     :param address:

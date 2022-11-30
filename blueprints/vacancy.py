@@ -5,16 +5,12 @@ from eth_utils import to_hex, to_checksum_address
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
-from web3 import Web3
 
 from database.users import get_uuid, checkReg
-from database.vacancy import clear_database, get_database, edit_vacancy, isAllowed, isCreated, get_owned_vac_by_uuid, \
-    get_vacancies_page
-from database.vacancy import get_previews_sort_by_int, get_vacancy, get_previews_sort_by_str, delete_vacancy, \
-    getUuidByid
+from database.vacancy import edit_vacancy, isAllowed, isCreated, get_owned_vac_by_uuid, get_vacancies_page
+from database.vacancy import get_vacancy, delete_vacancy, getUuidByid
 from database.vacancy_request import add_vac_request, transfer_to_vacancy
-from openapi.vacancy import GetPreviews, GetPreviewsBySTR, GetPreviewsByID, Delete, VacancyEdit, Vacancy, VacancyAdd, \
-    GetVacancy
+from openapi.vacancy import GetPreviewsByID, Delete, VacancyEdit, Vacancy, VacancyAdd, GetVacancy
 from utils import loadToIpfs, getFromIpfs
 
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
@@ -24,7 +20,7 @@ vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 @openapi.body({"application/json": Vacancy}, required=True)
 async def add_vacancy_params(request: Request):
     r = request.json
-    w3 = request.app.config.get('web3')
+    w3 = request.app.config.get('provider_eth')
     async with request.app.config.get('POOL').acquire() as conn:
         if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "From wallet isn't registered"}, 409)
@@ -36,7 +32,7 @@ async def add_vacancy_params(request: Request):
         cid = await loadToIpfs(dumps(r.get('data')), request.app.config['account'].key)
         await add_vac_request(conn, vac_uuid, owner_uuid, cid, r.get('price'), r.get('category'))
 
-        data = request.app.config.get('contract_ach').functions.mint(
+        data = request.app.config.get('contract_ach_eth').functions.mint(
             [vac_uuid.int, owner_uuid.int, 0, 1, False, cid]).build_transaction(
             {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('address'))),
              'from': to_checksum_address(r.get('address'))
@@ -148,7 +144,7 @@ async def edit_va(request: Request):
 async def delete_va(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         r = request.json
-        w3 = request.app.config.get('web3')
+        w3 = request.app.config.get('provider_eth')
         uuid_sender = await get_uuid(conn, r.get('address'), str(r.get('chainId')))
         if uuid_sender:
             uuid_sender = str(uuid_sender)
@@ -160,9 +156,9 @@ async def delete_va(request: Request):
         if await isAllowed(conn, uuid_sender, r.get('id')):
 
             ach_uuid = UUID(await getUuidByid(conn, r.get('id')))
-            tx = request.app.config.get('contract_ach').functions.burn(ach_uuid.int).build_transaction(
+            tx = request.app.config.get('contract_ach_eth').functions.burn(ach_uuid.int).build_transaction(
                 {'nonce': w3.eth.get_transaction_count(request.app.config['account'].address),
-                 'from': Web3.toChecksumAddress(r.get('address'))
+                 'from': to_checksum_address(r.get('address'))
                  })
             stx = w3.eth.account.signTransaction(tx, request.app.config['account'].key)
             txHash = w3.eth.send_raw_transaction(stx.rawTransaction)

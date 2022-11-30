@@ -20,12 +20,10 @@ achievements = Blueprint("achievements", url_prefix="/achievements")
 @openapi.body({"application/json": Achievement}, required=True)
 async def add_achievement_params(request: Request):
     r = request.json
-    w3 = request.app.config.get('web3')
+    w3 = request.app.config.get('provider_eth')
     async with request.app.config.get('POOL').acquire() as conn:
         if not await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain')):
             return json({'error': "From wallet isn't registered"}, 409)
-        # if not await checkReg(conn, r.get('to_address'), r.get('chainId')):
-        #     return json({'error': "To wallet isn't registered"}, 409)
 
         ach_uuid = uuid4()
         from_uuid = await get_uuid(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
@@ -35,7 +33,7 @@ async def add_achievement_params(request: Request):
         cid = await loadToIpfs(dumps(r.get('data')), request.app.config['account'].key)
         await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, ach_type)
 
-        data = request.app.config.get('contract_ach').functions.mint(
+        data = request.app.config.get('contract_ach_eth').functions.mint(
             [ach_uuid.int, from_uuid.int, to_uuid.int, verifier, False, cid]).build_transaction(
             {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('from_address'))),
              'from': to_checksum_address(r.get('from_address'))

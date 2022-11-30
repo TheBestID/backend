@@ -45,6 +45,15 @@ async def add_verify(conn: Connection, address: str, chainId: int, blockchain: s
         """, str(address).lower(), int(chainId), blockchain.lower(), hash_email, email_token, github_token)
 
 
+async def update_verify(conn: Connection, address: str, chainId: int, blockchain: str, hash_email: str,
+                        email_token: str, github_token: str):
+    await conn.execute("""
+        UPDATE verify 
+        SET hash_email = $4, email_token = $5, github_token = $6
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower(), hash_email, email_token, github_token)
+
+
 async def check_verify(conn: Connection, address: str, chainId: int, blockchain: str, hash_email: str,
                        email_token: UUID, github_token: str):
     data = await conn.fetchrow("""

@@ -8,7 +8,7 @@ from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
 from database.users import check, add_user, reg_user, checkReg, get_uuid
-from database.verify import add_verify, check_verify, del_verify, check_in_verify
+from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify
 from openapi.user import UserCheck, GetUser
 from smartcontracts.conn_to_near import near_mint, near_claim
 from smartcontracts.conn_to_sol import eth_mint, eth_claim
@@ -24,7 +24,7 @@ async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         uid = await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
         if uid:
-            return json({"uuid": uid.hex})
+            return json({"uuid": uid.get('uuid').hex})
         return empty(409)
 
 
@@ -62,6 +62,12 @@ async def email(request: Request):
                               request.app.config.get('e_pass'))
         if not em:
             return json({'error': 'Email error'}, 411)
+
+        if await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+            await update_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), h_email,
+                                e_token.hex, h_g_token)
+            return json({"uid": 1})
+
         await add_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), h_email, e_token.hex,
                          h_g_token)
         return json({"uid": 1})

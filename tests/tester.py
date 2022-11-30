@@ -11,6 +11,9 @@ import sys
 import asyncio
 
 import aioipfs
+from asyncpg import create_pool, Pool
+
+from config import host, username, password, database
 
 
 async def get():
@@ -36,7 +39,17 @@ async def get():
     await client.close()
 
 
-asyncio.run(get())
+async def dele():
+    async with await create_pool(host=host, user=username, password=password, database=database, min_size=1,
+                                 max_size=1) as conn:
+        await conn.execute("""
+        DELETE
+        FROM users
+        WHERE address = 'souldev.testnet'
+        """)
+
+
+asyncio.run(dele())
 
 
 async def add_files(files: list):
