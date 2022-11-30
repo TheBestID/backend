@@ -1,5 +1,5 @@
 from typing import Union
-
+from uuid import UUID
 from asyncpg import Connection, Pool
 
 
@@ -30,8 +30,8 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
 
     await conn.execute('''
         CREATE TABLE IF NOT EXISTS hacks(
-            id                  SERIAL      PRIMARY KEY,
-            owner_uuid          TEXT        DEFAULT '',
+            id                  UUID        KEY,
+            owner_uuid          UUID        NOT NULL,
             theme               TEXT        DEFAULT 'Dark',
             base_color          TEXT        DEFAULT 'White',
             font_head           TEXT        DEFAULT '',
@@ -47,14 +47,20 @@ async def create(conn: Union[Connection, Pool], clear=False) -> bool:
             task_descr          TEXT        DEFAULT '',
             social_link         TEXT        DEFAULT '',
             category            TEXT        DEFAULT '',
-            timestamp           TIMESTAMP   DEFAULT NOW()
+            timestamp           TIMESTAMP   DEFAULT NOW(),
+            start_date          TEXT        NOT NULL,
+            end_date            TEXT        NOT NULL,
+            tx_hash             TEXT        NOT NULL
+            
         );
         ''')
+
+
     return True
 
 
 async def add_hack(conn: Union[Connection, Pool],
-                   address: str,
+                   owner_uuid: UUID,
                    theme: str,
                    base_color: str,
                    font_head: str,
@@ -76,7 +82,7 @@ async def add_hack(conn: Union[Connection, Pool],
     await conn.execute("""
         INSERT INTO hacks (owner_uuid, theme, base_color, font_head, font_par, hackathon_name, description,back_url,logo_url,price,pool,descr_price,sbt_url,task_descr,social_link, category  )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);
-        """, address, theme, base_color, font_head, font_par, hackathon_name, description, back_url, logo_url, price,
+        """, owner_uuid, theme, base_color, font_head, font_par, hackathon_name, description, back_url, logo_url, price,
                        pool, descr_price, sbt_url, task_descr, social_link, category)
 
 
@@ -119,7 +125,7 @@ async def get_previews_sort_by_str(conn: Union[Connection, Pool], sort_type: str
 
 async def get_hack(conn: Union[Connection, Pool], id: int) -> list:
     return await conn.fetch("""
-        SELECT theme, base_color, font_head, font_par, hackathon_name, description,back_url,logo_url,price,pool,descr_price,sbt_url,task_descr,social_link, category, timestamp::TEXT
+        SELECT owner_uuid::TEXT, theme, base_color, font_head, font_par, hackathon_name, description,back_url,logo_url,price,pool,descr_price,sbt_url,task_descr,social_link, category, timestamp::TEXT
         FROM hacks WHERE id = $1;
         """, id)
 
@@ -138,7 +144,7 @@ async def delete_hack(conn: Union[Connection, Pool], id: int):
 
 async def get_database(conn: Union[Connection, Pool]) -> list:
     return await conn.fetch("""
-        SELECT id, owner_uuid, price, category, timestamp::TEXT , description
+        SELECT id::TEXT, owner_uuid::TEXT , price, category, timestamp::TEXT , description
         FROM hacks;
         """)
 

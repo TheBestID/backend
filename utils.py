@@ -65,7 +65,7 @@ async def send_email(email, hash_email, github_token, email_token: UUID, e_from,
         async with SMTP(hostname="smtp.gmail.com", port=465, use_tls=True, username=e_from, password=e_pass) as smtp:
             await smtp.send_message(message)
         return True
-    except:
+    except Exception as e:
         return False
 
 
@@ -78,4 +78,3 @@ if __name__ == "__main__":
     print('QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi' == 'QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi')
 
     data = create_dump('username', 'my description', False, attributes=[{'some info': 'my info'}])
-    

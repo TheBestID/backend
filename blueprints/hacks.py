@@ -1,11 +1,13 @@
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
+from uuid import uuid4
 
+from database.hacks_request import add_hack_request, transfer_to_hacks
 from database.hacks import get_database, create, clear_database, isAllowed_, isCreated_, add_hack, get_hack
 from database.hacks import get_previews_sort_by_int, get_previews_sort_by_str
-from openapi.hacks import AddHack, SortByInt, SortByStr, GetById
-
+from openapi.hacks import AddHack, SortByInt, SortByStr, GetById, AddHack_last
+from database.users import get_uuid
 hacks = Blueprint("hacks", url_prefix="/hacks")
 
 
@@ -15,23 +17,38 @@ async def get_bd(request: Request):
         return json(list(map(dict, await get_database(conn))))
 
 
-@hacks.post("/add")
+@hacks.post("/add_params")
 @openapi.body({"application/json": AddHack}, required=True)
-async def add(request: Request):
+async def add_params(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
         # if await check(conn, r.get('address'), r.get('chaiId')) == True:
         if isAllowed_():
             # add work with
-            await add_hack(conn, str(r.get('chainId')), r.get('theme'), r.get('base_color'), r.get('font_head'),
+            hack_uuid = uuid4()
+            await add_hack_request(conn, hack_uuid, await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain')), r.get('theme'), r.get('base_color'), r.get('font_head'),
                            r.get('font_par'),
                            r.get('hackathon_name'), r.get('description'), r.get('back_url'), r.get('logo_url'),
                            r.get('price'),
                            r.get('pool'), r.get('descr_price'), r.get('sbt_url'), r.get('descr_price'),
-                           r.get('social_link'), r.get('category'))
-            return empty(200)
+                           r.get('social_link'), r.get('category'), r.get('start_date'), r.get('end_date'))
+
+            return json({'transaction': 'trans', 'hack_id': hack_uuid.hex})
         else:
-            return empty(409, {'eror': 'No permissions or not hackathon'})
+            return empty(409, {'eror': 'No permissions'})
+
+
+@hacks.post("/add")
+@openapi.body({"application/json": AddHack_last}, required=True)
+async def add_hack(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        if isAllowed_():
+            from_uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
+            trans = await transfer_to_hacks(conn, r.get('hack_id'), from_uuid, r.get('txHash'))
+            if not trans:
+                return json({'error': "SBTid not found"}, 411)
+            return json({'uid': 1})
 
 
 @hacks.post("/get_previews_sortby_one")
