@@ -1,17 +1,14 @@
-from asyncio import get_event_loop
 from uuid import uuid4
 
 from eth_utils import to_checksum_address
-from eth_utils import to_hex
 from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
-from database.users import check, add_user, reg_user, checkReg, get_uuid
+from database.users import check, add_user, reg_user, checkReg, del_users
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify
 from openapi.user import UserCheck, GetUser
-from smartcontracts.conn_to_near import near_mint, near_claim
-from smartcontracts.conn_to_sol import eth_mint, eth_claim
+from smartcontracts import eth, near
 from utils import hashing, git_token, send_email
 
 user = Blueprint("user", url_prefix="/user")
@@ -86,21 +83,21 @@ async def msg_params(request: Request):
 
         if r.get('blockchain', '').lower() == 'eth':
             if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
-                uuid = await eth_mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
+                uuid = await eth.mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                       request.app.config.get('account_eth'), r.get('address', ''))
                 await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
 
-            transact = await eth_claim(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
+            transact = await eth.claim(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                        r.get('address', ''), r.get('hash_email'), r.get('github_token'))
             return json(transact)
 
         if r.get('blockchain', '').lower() == 'near':
             if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
-                uuid = await near_mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
+                uuid = await near.mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
                                        r.get('address', ''))
                 await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
 
-            transact = await near_claim(request.app.config.get('contract_near'), r.get('hash_email')[:32],
+            transact = await near.claim(request.app.config.get('contract_near'), r.get('hash_email')[:32],
                                         r.get('github_token')[:32])
             return json(transact)
 
@@ -124,6 +121,37 @@ async def add(request: Request):
         await del_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
 
     return json({"uid": uid})
+
+
+@user.post("/delete_params")
+@openapi.body({"application/json": UserCheck}, required=True)
+async def delete_params(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        uid = await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        if not uid:
+            return json({'error': "Wallet isn't registered"}, 409)
+
+        if r.get('blockchain', '').lower() == 'eth':
+            transact = await eth.burn(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
+                                      r.get('address', ''))
+            return json(transact)
+
+        if r.get('blockchain', '').lower() == 'near':
+            transact = await near.burn(request.app.config.get('contract_near'))
+            return json(transact)
+
+
+@user.post("/delete")
+@openapi.body({"application/json": UserCheck}, required=True)
+async def delete(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        uid = await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        if not uid:
+            return json({'error': "Wallet isn't registered"}, 409)
+        await del_users(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        return json({uid: 0})
 
 # @user.post("/test")
 # @openapi.body({"application/json": UserCheck}, required=True)

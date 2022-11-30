@@ -130,6 +130,14 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str, bl
         return res.get('uuid')
     return None
 
+
+async def del_users(conn: Connection, address: str, chainId: int, blockchain: str):
+    await conn.execute("""
+        DELETE
+        FROM users
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower())
+
 # async def main():
 #     conn = await connect(host=host, user=username, password=password, database=database)
 #     for i in range(50):

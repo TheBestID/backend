@@ -27,6 +27,7 @@ class UserEmailR200:
 class UserCheck:
     address: str
     chainId: int
+    blockchain: str
 
 
 class GetUser:

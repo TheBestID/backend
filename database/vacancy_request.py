@@ -25,7 +25,7 @@ async def create_table_vac_request(conn: Union[Connection, Pool], clear=False) -
 
 async def get_table_vac_request(conn: Connection):
     return await conn.fetch("""
-        SELECT sbt_id::TEXT, owner_uuid::TEXT, cid, price, category, time::TEXT, tx_hash
+        SELECT sbt_id::TEXT, owner_uuid::TEXT, cid, price, category, time::TEXT
         FROM vac_request;
         """)
 

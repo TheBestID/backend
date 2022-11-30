@@ -32,20 +32,3 @@ def test():
     out = account_my.function_call(contr_id, 'burn', [])
     print(out)
 
-
-async def near_mint(contract, account, address: str):
-    return await get_event_loop().run_in_executor(None, __near_mint, contract, account, address)
-
-
-def __near_mint(contract, account, address: str):
-    uuid = uuid4()
-    account.function_call(contract, "mint", [uuid.int, address])
-    return uuid
-
-
-async def near_claim(contract, hash_email, github_token):
-    return {'contractId': contract,
-            'method': 'claim',
-            'args': [github_token, hash_email],
-            'gas': 1e14,
-            'deposit': 0}
