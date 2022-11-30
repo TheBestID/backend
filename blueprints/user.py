@@ -85,7 +85,6 @@ async def msg_params(request: Request):
             return json({'error': 'Verification error'}, 408)
 
         if r.get('blockchain', '').lower() == 'eth':
-
             if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await eth_mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                       request.app.config.get('account_eth'), r.get('address', ''))
@@ -114,7 +113,8 @@ async def add(request: Request):
         if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             return json({'error': "Wallet isn't verified"}, 409)
 
-        if await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+        uid = await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        if uid:
             return json({'error': "Wallet is already verified"}, 408)
 
         if not await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
@@ -122,7 +122,8 @@ async def add(request: Request):
 
         await reg_user(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
         await del_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
-    return json({"uid": 1})
+
+    return json({"uid": uid})
 
 # @user.post("/test")
 # @openapi.body({"application/json": UserCheck}, required=True)
