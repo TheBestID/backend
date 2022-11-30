@@ -110,13 +110,13 @@ async def clear_bd_ach_request(request: Request):
 ########################################################
 
 @admin.get("/get_bd_hack_request")
-async def get_bd_ach_request(request: Request):
+async def get_bd_hack_request(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         return json(list(map(dict, await get_table_hack_request(conn))))
 
 
 @admin.get("/clear_bd_hack_request")
-async def clear_bd_ach_request(request: Request):
+async def clear_bd_hack_request(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         await create_table_hack_request(conn, True)
         return empty()
@@ -125,7 +125,7 @@ async def clear_bd_ach_request(request: Request):
 ########################################################
 
 @admin.get("/get_bd_hacks")
-async def get_bd_ach_request(request: Request):
+async def get_bd_hacks(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         return json(list(map(dict, await get_database(conn))))
 

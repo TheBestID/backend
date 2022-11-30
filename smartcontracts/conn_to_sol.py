@@ -1,8 +1,10 @@
 import asyncio
+from asyncio import get_event_loop
 from uuid import uuid4
 import hashlib
 
 from bcrypt import hashpw, gensalt
+from eth_utils import to_checksum_address, to_hex
 from web3 import Web3
 from web3.eth import AsyncEth
 
@@ -34,7 +36,7 @@ def send_data():
     return '1'
 
 
-send_data()
+# send_data()
 
 
 # account: LocalAccount = Account.from_key("cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629")
@@ -65,6 +67,7 @@ async def async_send_data():
 async def create():
     return await asyncio.get_event_loop().run_in_executor(None, hashpw, '1'.encode(), gensalt())
 
+
 # a = asyncio.run(create())
 # a = hashpw('1'.encode(), gensalt())
 # # print(a)
@@ -77,3 +80,37 @@ async def create():
 # a = hashpw(str(i).encode(), gensalt())
 # print(b.hex())
 # print(time.time() - s)
+
+
+async def eth_mint(provider, contract, account, address):
+    return await get_event_loop().run_in_executor(None, __eth_mint, provider, contract, account, address)
+
+
+def __eth_mint(provider, contract, account, address):
+    uuid = uuid4()
+    tx = contract.functions.mint(to_checksum_address(address), uuid.int).build_transaction(
+        {'nonce': provider.eth.get_transaction_count(account.address)})
+    stx = provider.eth.account.signTransaction(tx, account.key)
+    txHash = provider.eth.send_raw_transaction(stx.rawTransaction)
+    provider.eth.wait_for_transaction_receipt(txHash)
+    return uuid
+
+
+async def eth_claim(provider, contract, address, hash_email, github_token):
+    return await get_event_loop().run_in_executor(None, __eth_claim, provider, contract, address, hash_email,
+                                                  github_token)
+
+
+def __eth_claim(provider, contract, address, hash_email, github_token):
+    data = contract.functions.claim([hash_email, github_token]).build_transaction(
+        {'nonce': provider.eth.get_transaction_count(to_checksum_address(address)),
+         'from': to_checksum_address(address)})
+
+    data['value'] = to_hex(data['value'])
+    data['gas'] = to_hex(data['gas'])
+    data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
+    data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
+    data['chainId'] = to_hex(data['chainId'])
+    data['nonce'] = to_hex(data['nonce'])
+
+    return data

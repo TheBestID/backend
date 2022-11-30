@@ -67,7 +67,7 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID, b
         """, str(address).lower(), int(chainId), blockchain.lower())
 
 
-async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> bool:
+async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> UUID:
     """
     :param conn:
     :param address:
@@ -75,14 +75,11 @@ async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, bl
     :param blockchain:
     :return:
     """
-    res = await conn.fetchrow("""
-        SELECT registered
+    return await conn.fetchrow("""
+        SELECT uuid
         FROM users
-        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3 AND registered = True;
         """, str(address).lower(), int(chainId), blockchain.lower())
-    if res:
-        return res.get('registered')
-    return False
 
 
 async def checkReg_by_uid(conn: Union[Connection, Pool], uid: str) -> bool:

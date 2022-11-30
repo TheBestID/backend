@@ -8,6 +8,7 @@ from database.hacks import get_database, create, clear_database, isAllowed_, isC
 from database.hacks import get_previews_sort_by_int, get_previews_sort_by_str
 from openapi.hacks import AddHack, SortByInt, SortByStr, GetById, AddHack_last
 from database.users import get_uuid
+
 hacks = Blueprint("hacks", url_prefix="/hacks")
 
 
@@ -26,12 +27,14 @@ async def add_params(request: Request):
         if isAllowed_():
             # add work with
             hack_uuid = uuid4()
-            await add_hack_request(conn, hack_uuid, await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain')), r.get('theme'), r.get('base_color'), r.get('font_head'),
-                           r.get('font_par'),
-                           r.get('hackathon_name'), r.get('description'), r.get('back_url'), r.get('logo_url'),
-                           r.get('price'),
-                           r.get('pool'), r.get('descr_price'), r.get('sbt_url'), r.get('descr_price'),
-                           r.get('social_link'), r.get('category'), r.get('start_date'), r.get('end_date'))
+            await add_hack_request(conn, hack_uuid,
+                                   await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain')),
+                                   r.get('theme'), r.get('base_color'), r.get('font_head'),
+                                   r.get('font_par'),
+                                   r.get('hackathon_name'), r.get('description'), r.get('back_url'), r.get('logo_url'),
+                                   r.get('price'),
+                                   r.get('pool'), r.get('descr_price'), r.get('sbt_url'), r.get('descr_price'),
+                                   r.get('social_link'), r.get('category'), r.get('start_date'), r.get('end_date'))
 
             return json({'transaction': 'trans', 'hack_id': hack_uuid.hex})
         else:

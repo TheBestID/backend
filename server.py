@@ -36,23 +36,41 @@ signer_id = "souldev.testnet"
 
 @app.before_server_start
 async def init(app1):
+    """
+
+    :param app1:
+    :return:
+    """
+    """
+    database
+    """
     app1.config['POOL'] = await create_pool(host=host, user=username, password=password, database=database, min_size=1,
                                             max_size=1)
-    # await create(app1.config['POOL'])
-    app1.config['web3'] = Web3(Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
-    app1.config['contract'] = app1.config['web3'].eth.contract(address="0xC781bB6ccC786823a5A0aD05C01211B09c41beB4",
-                                                               abi=ABI)
-    app1.config['contract_ach'] = app1.config['web3'].eth.contract(address="0x813F92e52ee1ccFB2222a02C44a718457Dfb6e6F",
-                                                                   abi=achivement_ABI)
-    app1.config['account']: LocalAccount = ETH_Account.from_key(PK_GOERLY)
-    app1.config['web3'].eth.default_account = app1.config['account'].address
+    """
+    ETH
+    """
+    app1.config['provider_eth'] = Web3(
+        Web3.HTTPProvider("https://goerli.infura.io/v3/bbd5ce33856f4a188df9a144746934e4"))
+    app1.config['contract_eth'] = app1.config['provider_eth'].eth.contract(
+        address="0xC781bB6ccC786823a5A0aD05C01211B09c41beB4", abi=ABI)
+    app1.config['contract_ach_eth'] = app1.config['provider_eth'].eth.contract(
+        address="0x813F92e52ee1ccFB2222a02C44a718457Dfb6e6F", abi=achivement_ABI)
+    app1.config['account_eth']: LocalAccount = ETH_Account.from_key(PK_GOERLY)
+    app1.config['provider_eth'].eth.default_account = app1.config['account_eth'].address
+
+    """
+    NEAR
+    """
+    app1.config['provider_near'] = near_api.providers.JsonProvider("https://rpc.testnet.near.org")
+    app1.config['contract_near']: NEAR_Account = NEAR_Account(app1.config['provider_near'],
+                                                              Signer(signer_id, KeyPair(PK_NEAR)), signer_id)
+    app1.config['contract_near'] = "sbt.soul_dev.testnet"
+
+    """
+    EMAIL
+    """
     app1.config['email'] = "souldev.web3@gmail.com"
     app1.config['e_pass'] = "zzolvnzkmvkywerq"
-
-    app1.config['near_provider'] = near_api.providers.JsonProvider("https://rpc.testnet.near.org")
-    app1.config['near_acc']: NEAR_Account = NEAR_Account(app1.config['near_provider'],
-                                                         Signer(signer_id, KeyPair(PK_NEAR)), signer_id)
-    app1.config['near_contract'] = "sbt.soul_dev.testnet"
 
 
 @app.before_server_stop

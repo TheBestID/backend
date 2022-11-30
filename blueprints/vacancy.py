@@ -121,12 +121,6 @@ async def get_preview_by_id(request: Request):
 #                                                                   r.get('top_number'), r.get('in_asc')))))
 
 
-@vacancy.get("/get_bd")
-async def get_bd(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        return json(list(map(dict, await get_database(conn))))
-
-
 @vacancy.post("/edit_vacancy")
 @openapi.body({"application/json": VacancyEdit}, required=True)
 async def edit_va(request: Request):
@@ -176,17 +170,3 @@ async def delete_va(request: Request):
             return empty(200)
         else:
             return empty(409, {'error409': 'No permission to delete vacancy'})
-
-
-@vacancy.get("/clear_bd")
-async def clear_(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        await clear_database(conn)
-        return empty()
-
-
-@vacancy.get("/create_db")
-async def create_db(request: Request):
-    async with request.app.config.get('POOL').acquire() as conn:
-        await create(conn, clear=True)
-        return empty()
