@@ -102,7 +102,7 @@ async def checkReg_by_uid(conn: Union[Connection, Pool], uid: str) -> bool:
     return False
 
 
-async def check(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> bool:
+async def check_company(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> bool:
     """
     :param conn:
     :param address:
@@ -133,3 +133,12 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str, bl
     if res:
         return res.get('uuid')
     return None
+
+
+async def check_link(link: str, email: str):
+    if domain.find("@") > 0 and domain.find(".") > 0:
+        domain = email[email.find("@") + 1 : email.find(".")]
+    else:
+        return False
+
+    return (domain.lower() in link.lower())
