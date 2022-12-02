@@ -4,12 +4,13 @@ from sanic.response import json, empty
 from uuid import UUID, uuid4
 from utils import hashing, git_token, send_email
 
-from openapi.company import CompanyTemplate
+from openapi.company import CompanyTemplate, CompanyEmail
 from sanic_ext import openapi
 
 from database.users import check, add_user, reg_user, checkReg, del_users
-from database.company import check_company, check_link
-from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify
+from database.company import check_company, check_link, add_company, transfer_to_company, add_req
+from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify, check_verify_company
+from smartcontracts import eth, near
 
 company = Blueprint("company", url_prefix="/company")
 
@@ -26,7 +27,7 @@ async def get_company(request: Request):
 
 
 @company.post("/email")
-@openapi.body({"application/json": CompanyTemplate}, required=True)
+@openapi.body({"application/json": CompanyEmail}, required=True)
 async def email(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
@@ -48,6 +49,8 @@ async def email(request: Request):
         if not em:
             return json({'error': 'Email error'}, 411)
 
+        await add_req(conn, r.get('address'), r.get('chanId', 0), r.get('blockchain'), r.get('link'), r.get('email'))
+
         if await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             await update_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), email,
                                 e_token.hex, h_g_token)
@@ -58,7 +61,7 @@ async def email(request: Request):
         return json({"uid": 1})
 
 
-"""@company.post("/msg_params")
+@company.post("/msg_params")
 @openapi.body({"application/json": CompanyTemplate}, required=True)
 async def msg_params(request: Request):
     r = request.json
@@ -66,15 +69,15 @@ async def msg_params(request: Request):
 
         if await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             return json({'error': 'Wallet is already registered'}, 409)
-        if not await check_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''),
-                                  r.get('hash_email'), r.get('email_token'), r.get('github_token')):
+        if not await check_verify_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''),
+                                  r.get('email_token'), r.get('github_token')):
             return json({'error': 'Verification error'}, 408)
 
         if r.get('blockchain', '').lower() == 'eth':
             if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await eth.mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                       request.app.config.get('account_eth'), r.get('address', ''))
-                await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
+                await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
 
             transact = await eth.claim(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                        r.get('address', ''), r.get('hash_email'), r.get('github_token'))
@@ -84,8 +87,8 @@ async def msg_params(request: Request):
             if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await near.mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
                                        r.get('address', ''))
-                await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
+                await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
 
             transact = await near.claim(request.app.config.get('contract_near'), r.get('hash_email')[:32],
                                         r.get('github_token')[:32])
-            return json(transact)"""
+            return json(transact)

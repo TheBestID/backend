@@ -68,6 +68,20 @@ async def check_verify(conn: Connection, address: str, chainId: int, blockchain:
     return False
 
 
+async def check_verify_company(conn: Connection, address: str, chainId: int, blockchain: str,
+                       email_token: UUID, github_token: str):
+    data = await conn.fetchrow("""
+        SELECT email_token, github_token, time
+        FROM verify
+        WHERE address = $1 AND chainid = $2 AND blockchain = $3;
+        """, str(address).lower(), int(chainId), blockchain.lower())
+    if not data:
+        return False
+    if email_token == data['email_token'] and github_token == data['github_token']:
+        return True
+    return False
+
+
 async def check_in_verify(conn: Connection, address: str, chainId: int, blockchain: str):
     return bool(await conn.fetchrow("""
         SELECT hash_email
