@@ -1,5 +1,5 @@
 from asyncio import get_event_loop
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 
 async def mint(contract, account, address: str):
@@ -26,3 +26,14 @@ async def burn(contract):
             'args': [],
             'gas': 1e14,
             'deposit': 0}
+
+
+async def mint_achievement(contract, _type: int, from_uuid: UUID, to_uuid: UUID, verifier: UUID, cid: str,
+                           balance: int):
+    ach_uuid = uuid4()
+    return ach_uuid, {'contractId': contract,
+                      'method': 'mint',
+                      'args': [ach_uuid.int, _type, from_uuid.int, to_uuid.int, False, verifier.int, False, cid,
+                               balance],
+                      'gas': 1e14,
+                      'deposit': 0}

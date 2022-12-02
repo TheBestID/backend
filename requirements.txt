@@ -1,7 +1,7 @@
 aiofiles==22.1.0
 aiohttp==3.8.3
 aioipfs==0.6.1
-aiosignal==1.2.0
+aiosignal==1.3.1
 aiosmtplib==1.1.6
 aleph-client==0.5.0
 aleph-message==0.2.3
@@ -16,7 +16,7 @@ certifi==2022.9.24
 cffi==1.15.1
 charset-normalizer==2.1.1
 click==8.1.3
-coincurve==17.0.0
+coincurve==18.0.0
 colorama==0.4.6
 cryptography==37.0.1
 cytoolz==0.12.0
@@ -71,3 +71,5 @@ varint==1.0.2
 web3==6.0.0b7
 websockets==10.4
 yarl==1.8.1
+
+aioboto3~=10.1.0

@@ -4,9 +4,6 @@ from uuid import UUID
 from asyncpg import Connection, Pool
 
 
-# from config import host, username, password, database
-
-
 async def create_table_ach_request(conn: Union[Connection, Pool], clear=False) -> bool:
     """
     :param conn:
@@ -22,7 +19,8 @@ async def create_table_ach_request(conn: Union[Connection, Pool], clear=False) -
             from_adr            UUID        NOT NULL,
             to_adr              UUID        NOT NULL,
             cid                 TEXT        NOT NULL,
-            type                TEXT        NOT NULL,
+            image_cid           TEXT        NOT NULL,
+            type                INT         NOT NULL,
             time                TIMESTAMP   DEFAULT NOW()
         );
         ''')
@@ -31,25 +29,27 @@ async def create_table_ach_request(conn: Union[Connection, Pool], clear=False) -
 
 async def get_table_ach_request(conn: Connection):
     return await conn.fetch("""
-        SELECT sbt_id::TEXT, from_adr::TEXT, to_adr::TEXT, cid, type, time::TEXT
+        SELECT sbt_id::TEXT, from_adr::TEXT, to_adr::TEXT, cid, image_cid, type, time::TEXT
         FROM ach_request;
         """)
 
 
-async def add_ach_request(conn: Union[Connection, Pool], sbt_id: UUID, _from: UUID, to: UUID, cid: str, _type: str):
+async def add_ach_request(conn: Union[Connection, Pool], sbt_id: UUID, _from: UUID, to: UUID, cid: str, image_cid: str,
+                          _type: int):
     """
     :param conn:
     :param sbt_id:
     :param _from:
     :param to:
     :param cid:
+    :param image_cid:
     :param _type:
     :return:
     """
     await conn.execute("""
-        INSERT INTO ach_request (sbt_id, from_adr, to_adr, cid, type)
-        VALUES ($1, $2, $3, $4, $5);
-        """, sbt_id, _from, to, cid, _type)
+        INSERT INTO ach_request (sbt_id, from_adr, to_adr, cid, image_cid, type)
+        VALUES ($1, $2, $3, $4, $5, $6);
+        """, sbt_id, _from, to, cid, image_cid, _type)
 
 
 async def del_ach_request(conn: Union[Connection, Pool], sbt_id: UUID):
@@ -73,9 +73,10 @@ async def transfer_to_achievements(conn: Union[Connection, Pool], sbt_id: UUID, 
 
     if data:
         await conn.execute("""
-            INSERT INTO achievements (sbt_id, from_adr, to_adr, cid, type, tx_hash)
+            INSERT INTO achievements (sbt_id, from_adr, to_adr, cid, image_cid, type, tx_hash)
             VALUES ($1, $2, $3, $4, $5, $6);
-            """, data['sbt_id'], data['from_adr'], data['to_adr'], data['cid'], data['type'], tx_hash)
+            """, data['sbt_id'], data['from_adr'], data['to_adr'], data['cid'], data['image_cid'], data['type'],
+                           tx_hash)
         await conn.execute("""
             DELETE FROM ach_request
             WHERE sbt_id = $1 AND from_adr = $2;

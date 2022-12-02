@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from typing import Union
 from uuid import UUID
 
-from asyncpg import Connection, Pool, Record
+from asyncpg import Connection, Pool
 
 
 async def create_table_users(conn: Union[Connection, Pool], clear=False) -> bool:
@@ -67,7 +69,7 @@ async def reg_user(conn: Union[Connection, Pool], address: str, chainId: UUID, b
         """, str(address).lower(), int(chainId), blockchain.lower())
 
 
-async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> Record:
+async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str) -> UUID | bool:
     """
     :param conn:
     :param address:
@@ -75,11 +77,14 @@ async def checkReg(conn: Union[Connection, Pool], address: str, chainId: str, bl
     :param blockchain:
     :return:
     """
-    return await conn.fetchrow("""
+    data = await conn.fetchrow("""
         SELECT uuid
         FROM users
         WHERE address = $1 AND chainid = $2 AND blockchain = $3 AND registered = True;
         """, str(address).lower(), int(chainId), blockchain.lower())
+    if data:
+        return data.get('uuid')
+    return False
 
 
 async def checkReg_by_uid(conn: Union[Connection, Pool], uid: str) -> bool:

@@ -21,7 +21,7 @@ async def check_user(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         uid = await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
         if uid:
-            return json({"uuid": uid.get('uuid').hex})
+            return json({"uuid": uid.hex})
         return empty(409)
 
 
@@ -151,7 +151,7 @@ async def delete(request: Request):
         if not uid:
             return json({'error': "Wallet isn't registered"}, 409)
         await del_users(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
-        return json({uid: 0})
+        return json({'uid': 0})
 
 # @user.post("/test")
 # @openapi.body({"application/json": UserCheck}, required=True)

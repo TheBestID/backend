@@ -1,57 +1,60 @@
 from json import dumps
 from uuid import uuid4
 
-from eth_utils import to_checksum_address
-from eth_utils import to_hex
 from sanic import Blueprint
+from sanic.request import File
 from sanic.response import Request, json
 from sanic_ext import openapi
+from sanic_ext.extensions.openapi.definitions import RequestBody
 
 from database.achievements import get_owned_ach_by_uuid, get_created_ach_by_uuid
 from database.achievements_request import add_ach_request, transfer_to_achievements
 from database.users import get_uuid, checkReg, checkReg_by_uid
 from openapi.achievement import Achievement, GetAchievement, AchievementAdd
-from utils import loadToIpfs, getFromIpfs
+from smartcontracts import eth, near
+from utils import loadToIpfs, getFromIpfs, loadFile
 
 achievements = Blueprint("achievements", url_prefix="/achievements")
 
 
 @achievements.post("/add_params")
-@openapi.body({"application/json": Achievement}, required=True)
+@openapi.body(RequestBody({"multipart/form-data": Achievement}))
 async def add_achievement_params(request: Request):
-    r = request.json
-    w3 = request.app.config.get('provider_eth')
+    r = request.form
+    print(r)
+    image: File = request.files.get('image')
+
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain')):
+        from_uuid = await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
+        if not from_uuid:
             return json({'error': "From wallet isn't registered"}, 409)
 
-        ach_uuid = uuid4()
-        from_uuid = await get_uuid(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
-        to_uuid = await get_uuid(conn, r.get('to_address'), r.get('chainId'), r.get('blockchain'))
-        ach_type = ''
-        verifier = 0
-        cid = await loadToIpfs(dumps(r.get('data')), request.app.config['account'].key)
-        await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, ach_type)
+        to_uuid = await checkReg(conn, r.get('to_address'), r.get('chainId'), r.get('blockchain'))
+        if not to_uuid:
+            return json({'error': "From wallet isn't registered"}, 409)
 
-        data = request.app.config.get('contract_ach_eth').functions.mint(
-            [ach_uuid.int, from_uuid.int, to_uuid.int, verifier, False, cid]).build_transaction(
-            {'nonce': w3.eth.get_transaction_count(to_checksum_address(r.get('from_address'))),
-             'from': to_checksum_address(r.get('from_address'))
-             })
+        ach_type = 0
+        verifier = uuid4()
 
-        data['value'] = to_hex(data['value'])
-        data['gas'] = to_hex(data['gas'])
-        data['maxFeePerGas'] = to_hex(data['maxFeePerGas'])
-        data['maxPriorityFeePerGas'] = to_hex(data['maxPriorityFeePerGas'])
-        data['chainId'] = to_hex(data['chainId'])
-        data['nonce'] = to_hex(data['nonce'])
+        data = r.get('data')
+        if image:
+            image_cid = await loadFile(image)
+            data['image_cid'] = image_cid
+        cid = await loadToIpfs(dumps(data), request.app.config['account_eth'].key)
 
-        ####
-        # stx = w3.eth.account.signTransaction(data, request.app.config['account'].key)
-        # txHash = w3.eth.send_raw_transaction(stx.rawTransaction) 'txHash': str(txHash)
-        ###
+        if r.get('blockchain', '').lower() == 'eth':
+            ach_uuid, transact = await eth.mint_achievement(request.app.config.get('provider_eth'),
+                                                            request.app.config.get('contract_ach_eth'),
+                                                            ach_type, r.get('from_address'), from_uuid, to_uuid,
+                                                            verifier,
+                                                            cid, 0)
 
-        return json({'transaction': data, 'sbt_id': ach_uuid.hex})
+        if r.get('blockchain', '').lower() == 'near':
+            ach_uuid, transact = await near.mint_achievement()
+
+        await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, image_cid, ach_type)
+
+        return json({'transaction': transact, 'sbt_id': ach_uuid.hex})
 
 
 @achievements.post("/add")
@@ -59,10 +62,10 @@ async def add_achievement_params(request: Request):
 async def add_achievement(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
-            return json({'error': "Wallet isn't registered"}, 409)
+        from_uuid = await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
+        if not from_uuid:
+            return json({'error': "From wallet isn't registered"}, 409)
 
-        from_uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
         trans = await transfer_to_achievements(conn, r.get('sbt_id'), from_uuid, r.get('txHash'))
         if not trans:
             return json({'error': "SBTid not found"}, 411)
@@ -76,6 +79,10 @@ async def get_owned_achievement(request: Request):
     async with request.app.config.get('POOL').acquire() as conn:
         if not await checkReg_by_uid(conn, r.get('uid')):
             return json({'error': "From wallet isn't registered"}, 409)
+
+        # data = request.app.config.get('contract_ach_eth').functions.getAchievementsOfOwner(
+        #     to_checksum_address("0x41c9288b78090946db0fd6d32d8cb1fefe18134b")).call()
+        # print(data)
         ach = await get_owned_ach_by_uuid(conn, r.get('uid'))
         data = [getFromIpfs(i['cid']) for i in ach]
         return json({'data': data})

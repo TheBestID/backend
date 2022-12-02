@@ -1,12 +1,33 @@
 from uuid import UUID
 
+from sanic_openapi.openapi3.types import Byte, Object, Binary
 
-class Achievement:
-    from_address: str
-    to_address: str
-    blockchain: str
-    chainId: int
-    data: {}
+Achievement = {
+    'schema': {
+        "type": "object",
+        "properties": {
+            "from_address": {
+                "type": "string"
+            },
+            "to_address": {
+                "type": "string"
+            },
+            "blockchain": {
+                "type": "string"
+            },
+            "chainId": {
+                "type": "integer"
+            },
+            "data": {
+                "type": "object"
+            },
+            "image": {
+                "type": "string",
+                "format": "binary"
+            }
+        }
+    }
+}
 
 
 class GetAchievement:

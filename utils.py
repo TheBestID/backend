@@ -1,13 +1,15 @@
 import json
 from asyncio import get_event_loop
 from email.message import EmailMessage
-from uuid import UUID
+from uuid import UUID, uuid4
 
+import aioboto3
 import requests
 from aiosmtplib import SMTP
 from aleph_client.asynchronous import create_store
 from aleph_client.chains.ethereum import ETHAccount
 from bcrypt import hashpw, gensalt
+from sanic.request import File
 from web3 import Web3
 
 PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
@@ -41,11 +43,20 @@ def create_dump(username: str, description: str, isImage: bool, attributes=[], i
 
 
 async def loadToIpfs(data, key):
-    # return 'IPFS relax but still work ^_^'
     acc = ETHAccount(key)
     hash = await create_store(file_content=bytes(data, 'utf-8'), account=acc, storage_engine="ipfs")
-    # print(hash.content.item_hash)
     return hash.content.item_hash
+
+
+async def loadFile(data: File):
+    filename = uuid4().hex + '.' + data.name.split('.')[-1]
+    s = aioboto3.Session()
+    async with s.client(service_name='s3',
+                        aws_access_key_id='YCAJEDXwS0WgZ5GQ0iY2Oo5tb',
+                        aws_secret_access_key='YCOBVG4vwwg0sFAQORe779ncGgsVJhijmQ5iupcm',
+                        endpoint_url='https://storage.yandexcloud.net') as s3:
+        await s3.put_object(Bucket='imagesdata', Key=filename, Body=data.body)
+    return f'imagesdata/{filename}'
 
 
 def getFromIpfs(cid):

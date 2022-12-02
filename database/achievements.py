@@ -4,9 +4,6 @@ from uuid import UUID
 from asyncpg import Connection, Pool
 
 
-# from config import host, username, password, database
-
-
 async def create_table_achievements(conn: Union[Connection, Pool], clear=False) -> bool:
     """
     :param conn:
@@ -22,7 +19,8 @@ async def create_table_achievements(conn: Union[Connection, Pool], clear=False) 
             from_adr            UUID        NOT NULL,
             to_adr              UUID        NOT NULL,
             cid                 TEXT        NOT NULL,
-            type                TEXT        NOT NULL,
+            image_cid           TEXT        NOT NULL,
+            type                INT         NOT NULL,
             time                TIMESTAMP   DEFAULT NOW(),
             tx_hash             TEXT        NOT NULL
         );
@@ -32,14 +30,14 @@ async def create_table_achievements(conn: Union[Connection, Pool], clear=False) 
 
 async def get_table_achievements(conn: Connection):
     return await conn.fetch("""
-        SELECT sbt_id::TEXT, from_adr::TEXT, to_adr::TEXT, cid, type, time::TEXT, tx_hash
+        SELECT sbt_id::TEXT, from_adr::TEXT, to_adr::TEXT, cid, image_cid, type, time::TEXT, tx_hash
         FROM achievements;
         """)
 
 
 async def get_owned_ach_by_uuid(conn: Connection, uuid: UUID):
     return await conn.fetch("""
-        SELECT cid, type
+        SELECT image_cid, cid, type
         FROM achievements
         WHERE to_adr = $1;
         """, uuid)
