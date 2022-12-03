@@ -133,13 +133,3 @@ async def get_uuid_comp(conn: Union[Connection, Pool], address: str, chainId: st
     if res:
         return res.get('uuid')
     return None
-
-
-async def check_link(link: str, email: str):
-    if email.find("@") > 0 and email.find(".") > 0:
-        domain = email[email.find("@") + 1 : email.find(".")]
-        print(domain)
-    else:
-        return False
-
-    return (domain.lower() in link.lower())

@@ -7,9 +7,11 @@ from utils import hashing, git_token, send_email
 from openapi.company import CompanyTemplate, CompanyEmail, CompanyAdd, CompanyMsgParams
 from sanic_ext import openapi
 
+from utils import check_link, check_email, compare_link
+
 from database.users import check, add_user, reg_user, checkReg, del_users
-from database.company import check_company, check_link, add_company
-from database.company import checkReg_by_uid_Comp, checkRegComp, reg_company, get_uuid_comp
+from database.company import check_company, add_company
+from database.company import checkRegComp, reg_company, get_uuid_comp
 from database.company_request import transfer_to_company, add_req, del_comp_req, check_company_req
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify, check_verify_company
 from database.vacancy import get_vacancies_by_uuid
@@ -37,6 +39,14 @@ async def email(request: Request):
         if await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')) or await check_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             return json({'error': 'Wallet is already registered'}, 409)
         
+        if not await check_email(r.get('email')):
+            return json({'error': 'Invalid email'}, 409)
+
+
+        if not await check_link(r.get('link')):
+            return json({'error': 'Invalid link'}, 409)
+
+
         if not await check_link(r.get('link'), r.get('email')):
             return json({'error': 'Not allowed domain'}, 409)
 
