@@ -9,7 +9,9 @@ from database.users import check, add_user, reg_user, checkReg, del_users
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify
 from openapi.user import UserCheck, GetUser
 from smartcontracts import eth, near
-from utils import hashing, git_token, send_email
+from utils import hashing, git_token, send_email, check_email, check_link, compare_link
+from database.company_request import add_comp_request, check_company_req, transfer_to_company, del_comp_req
+from database.company import reg_company
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -55,10 +57,29 @@ async def email(request: Request):
             return json({'error': 'Github error'}, 408)
         h_email = await hashing(r.get('email'))
         h_g_token = await hashing(g_token)
+
+        if r.get('company_email') and r.get('company_link'):
+            if not await check_email(r.get('company_email')):
+                return json({'error': 'Invalid email'}, 409)
+
+
+            if not await check_link(r.get('company_link')):
+                return json({'error': 'Invalid link'}, 409)
+
+
+            if not await check_link(r.get('company_link'), r.get('company_email')):
+                return json({'error': 'Not allowed domain'}, 409)
+
+            await add_comp_request(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('company_link'), r.get('company_email'))
+
         em = await send_email(r.get('email'), h_email, h_g_token, e_token, request.app.config.get('email'),
                               request.app.config.get('e_pass'))
         if not em:
             return json({'error': 'Email error'}, 411)
+
+
+        
+        
 
         if await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             await update_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), h_email,
@@ -81,11 +102,16 @@ async def msg_params(request: Request):
                                   r.get('hash_email'), r.get('email_token'), r.get('github_token')):
             return json({'error': 'Verification error'}, 408)
 
+        
+
+
         if r.get('blockchain', '').lower() == 'eth':
             if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await eth.mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                       request.app.config.get('account_eth'), r.get('address', ''))
                 await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
+                if await check_company_req(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+                    await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
 
             transact = await eth.claim(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                        r.get('address', ''), r.get('hash_email'), r.get('github_token'))
@@ -96,6 +122,8 @@ async def msg_params(request: Request):
                 uuid = await near.mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
                                        r.get('address', ''))
                 await add_user(conn, r.get('address', ''), r.get('chainId', 0), uuid, r.get('blockchain', ''))
+                if await check_company_req(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+                    await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
 
             transact = await near.claim(request.app.config.get('contract_near'), r.get('hash_email')[:32],
                                         r.get('github_token')[:32])
@@ -119,6 +147,10 @@ async def add(request: Request):
 
         await reg_user(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
         await del_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+
+        if await check_company_req(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+            await reg_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+            await del_comp_req(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
 
     return json({"uid": uid})
 
