@@ -4,11 +4,13 @@ from sanic.response import json, empty
 from uuid import UUID, uuid4
 from utils import hashing, git_token, send_email
 
-from openapi.company import CompanyTemplate, CompanyEmail
+from openapi.company import CompanyTemplate, CompanyEmail, CompanyAdd, CompanyMsgParams
 from sanic_ext import openapi
 
 from database.users import check, add_user, reg_user, checkReg, del_users
-from database.company import check_company, check_link, add_company, transfer_to_company, add_req
+from database.company import check_company, check_link, add_company
+from database.company import checkReg_by_uid_Comp, checkRegComp, reg_company
+from database.company_request import transfer_to_company, add_req, del_comp_req, check_company_req
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify, check_verify_company
 from smartcontracts import eth, near
 
@@ -49,10 +51,10 @@ async def email(request: Request):
         if not em:
             return json({'error': 'Email error'}, 411)
 
-        await add_req(conn, r.get('address'), r.get('chanId', 0), r.get('blockchain'), r.get('link'), r.get('email'))
+        await add_req(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('link'), r.get('email'))
 
         if await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
-            await update_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), email,
+            await update_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), h_email,
                                 e_token.hex, h_g_token)
             return json({"uid": 1})
 
@@ -62,19 +64,22 @@ async def email(request: Request):
 
 
 @company.post("/msg_params")
-@openapi.body({"application/json": CompanyTemplate}, required=True)
+@openapi.body({"application/json": CompanyMsgParams}, required=True)
 async def msg_params(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
 
-        if await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+        if await checkReg(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')) or await checkRegComp(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
             return json({'error': 'Wallet is already registered'}, 409)
         if not await check_verify_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''),
                                   r.get('email_token'), r.get('github_token')):
             return json({'error': 'Verification error'}, 408)
+        uuid = uuid4()
+        await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
+        return json({'transact': 'transact'})
 
         if r.get('blockchain', '').lower() == 'eth':
-            if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+            if not await check_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await eth.mint(request.app.config.get('provider_eth'), request.app.config.get('contract_eth'),
                                       request.app.config.get('account_eth'), r.get('address', ''))
                 await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
@@ -84,7 +89,7 @@ async def msg_params(request: Request):
             return json(transact)
 
         if r.get('blockchain', '').lower() == 'near':
-            if not await check(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+            if not await check_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
                 uuid = await near.mint(request.app.config.get('contract_near'), request.app.config.get('account_near'),
                                        r.get('address', ''))
                 await transfer_to_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), uuid)
@@ -92,3 +97,26 @@ async def msg_params(request: Request):
             transact = await near.claim(request.app.config.get('contract_near'), r.get('hash_email')[:32],
                                         r.get('github_token')[:32])
             return json(transact)
+
+
+@company.post("/add")
+@openapi.body({"application/json": CompanyAdd}, required=True)
+async def add(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        if not await check_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+             return json({'error': "Wallet isn't verified"}, 409)
+
+        uid = await checkRegComp(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        if uid:
+            return json({'error': "Wallet is already verified"}, 408)
+
+        if not await check_in_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', '')):
+            return json({'error': "Wallet isn't verified"}, 411)
+
+        await reg_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        await del_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+        await del_comp_req(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
+
+
+    return json({"uid": uid})

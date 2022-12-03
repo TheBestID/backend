@@ -15,6 +15,7 @@ from blueprints.admin import admin
 from blueprints.user import user
 from blueprints.vacancy import vacancy
 from blueprints.hacks import hacks
+from blueprints.company import company
 from config import host, password, database, username
 from smartcontracts.abi import ABI
 from smartcontracts.abi_ach import ABI_ACH
@@ -29,6 +30,7 @@ app.blueprint(vacancy)
 app.blueprint(hacks)
 app.blueprint(admin)
 app.blueprint(achievements)
+app.blueprint(company)
 
 PK_GOERLY = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
 
