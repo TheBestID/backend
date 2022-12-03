@@ -12,7 +12,7 @@ from database.vacancy import get_vacancy, delete_vacancy, getUuidByid
 from database.vacancy_request import add_vac_request, transfer_to_vacancy
 from openapi.vacancy import GetPreviewsByID, Delete, VacancyEdit, Vacancy, VacancyAdd, GetVacancy
 from utils import loadToIpfs, getFromIpfs
-
+from database.company import check_company
 vacancy = Blueprint("vacancy", url_prefix="/vacancy")
 
 
@@ -26,6 +26,10 @@ async def add_vacancy_params(request: Request):
             return json({'error': "From wallet isn't registered"}, 409)
         # if not await checkReg(conn, r.get('to_address'), r.get('chainId')):
         #     return json({'error': "To wallet isn't registered"}, 409)
+
+        if not check_company(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+            return json({'error': "Only companies can create vacansies"}, 408)
+
 
         vac_uuid = uuid4()
         owner_uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))

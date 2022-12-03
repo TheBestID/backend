@@ -9,9 +9,10 @@ from sanic_ext import openapi
 
 from database.users import check, add_user, reg_user, checkReg, del_users
 from database.company import check_company, check_link, add_company
-from database.company import checkReg_by_uid_Comp, checkRegComp, reg_company
+from database.company import checkReg_by_uid_Comp, checkRegComp, reg_company, get_uuid_comp
 from database.company_request import transfer_to_company, add_req, del_comp_req, check_company_req
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify, check_verify_company
+from database.vacancy import get_vacancies_by_uuid
 from smartcontracts import eth, near
 
 company = Blueprint("company", url_prefix="/company")
@@ -120,3 +121,18 @@ async def add(request: Request):
 
 
     return json({"uid": uid})
+
+
+@company.post("/get_company_vacancies")
+@openapi.body({"application/json": CompanyAdd}, required=True)
+async def add(request: Request):
+    r = request.json
+    async with request.app.config.get('POOL').acquire() as conn:
+        owner_uuid = get_uuid_comp(conn, r.get('address'),r.get('chainId'), r.get('blockchain'))
+
+        if not owner_uuid:
+            return  json({'error': 'There is no such company'}, 409)
+        return json(list(map(dict, await get_vacancies_by_uuid(conn, owner_uuid))))
+
+
+        
