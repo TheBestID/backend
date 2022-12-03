@@ -82,7 +82,7 @@ async def send_email(email, hash_email, github_token, email_token: UUID, e_from,
         return False
 
 
-async def check_email(email):
+def check_email(email):
     regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
     return re.fullmatch(regex, email)
 
@@ -96,7 +96,7 @@ def check_link(link: str):
 
 
 
-async def compare_link(link: str, email: str):
+def compare_link(link: str, email: str):
     if email.find("@") > 0 and email.find(".") > 0:
         domain = email[email.find("@") + 1 : email.find(".")]
         print(domain)

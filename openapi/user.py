@@ -32,3 +32,21 @@ class UserCheck:
 
 class GetUser:
     uuid: str
+
+
+class CompanyEmail:
+    address:        str
+    chainId:        int
+    blockchain:     str
+    company_email:  str
+    company_link:   str
+    githubCode:     str
+    email:          str
+
+
+class CompanyMsgParams:
+    address:        str
+    chainId:        int
+    blockchain:     str
+    email_token:    str
+    github_token:   str

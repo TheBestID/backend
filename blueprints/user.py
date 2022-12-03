@@ -7,7 +7,7 @@ from sanic_ext import openapi
 
 from database.users import check, add_user, reg_user, checkReg, del_users
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify
-from openapi.user import UserCheck, GetUser
+from openapi.user import UserCheck, GetUser, CompanyEmail, CompanyMsgParams
 from smartcontracts import eth, near
 from utils import hashing, git_token, send_email, check_email, check_link, compare_link
 from database.company_request import add_comp_req, check_company_req, transfer_to_company, del_comp_req
@@ -45,7 +45,7 @@ async def get_user(request: Request):
 
 
 @user.post("/email")
-@openapi.body({"application/json": UserCheck}, required=True)
+@openapi.body({"application/json": CompanyEmail}, required=True)
 async def email(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
@@ -59,15 +59,15 @@ async def email(request: Request):
         h_g_token = await hashing(g_token)
 
         if r.get('company_email') and r.get('company_link'):
-            if not await check_email(r.get('company_email')):
+            if not check_email(r.get('company_email')):
                 return json({'error': 'Invalid email'}, 409)
 
 
-            if not await check_link(r.get('company_link')):
+            if not check_link(r.get('company_link')):
                 return json({'error': 'Invalid link'}, 409)
 
 
-            if not await check_link(r.get('company_link'), r.get('company_email')):
+            if not compare_link(r.get('company_link'), r.get('company_email')):
                 return json({'error': 'Not allowed domain'}, 409)
 
             await add_comp_req(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('company_link'), r.get('company_email'))
@@ -92,7 +92,7 @@ async def email(request: Request):
 
 
 @user.post("/msg_params")
-@openapi.body({"application/json": UserCheck}, required=True)
+@openapi.body({"application/json": CompanyMsgParams}, required=True)
 async def msg_params(request: Request):
     r = request.json
     async with request.app.config.get('POOL').acquire() as conn:
