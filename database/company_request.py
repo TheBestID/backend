@@ -39,7 +39,7 @@ async def get_comp_req(conn: Union[Connection, Pool]):
 
 
 
-async def add_req(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str, link: str, email: str):
+async def add_comp_req(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str, link: str, email: str):
     """
     :param conn:
     :param chainId:

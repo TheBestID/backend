@@ -1,4 +1,4 @@
-from sanic import Blueprint
+'''from sanic import Blueprint
 from sanic.response import Request, text
 from sanic.response import json, empty
 from uuid import UUID, uuid4
@@ -145,4 +145,4 @@ async def add(request: Request):
         return json(list(map(dict, await get_vacancies_by_uuid(conn, owner_uuid))))
 
 
-        
+        '''

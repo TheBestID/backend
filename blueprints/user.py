@@ -10,7 +10,7 @@ from database.verify import add_verify, check_verify, del_verify, check_in_verif
 from openapi.user import UserCheck, GetUser
 from smartcontracts import eth, near
 from utils import hashing, git_token, send_email, check_email, check_link, compare_link
-from database.company_request import add_comp_request, check_company_req, transfer_to_company, del_comp_req
+from database.company_request import add_comp_req, check_company_req, transfer_to_company, del_comp_req
 from database.company import reg_company
 
 user = Blueprint("user", url_prefix="/user")
@@ -70,7 +70,7 @@ async def email(request: Request):
             if not await check_link(r.get('company_link'), r.get('company_email')):
                 return json({'error': 'Not allowed domain'}, 409)
 
-            await add_comp_request(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('company_link'), r.get('company_email'))
+            await add_comp_req(conn, r.get('address'), r.get('chainId'), r.get('blockchain'), r.get('company_link'), r.get('company_email'))
 
         em = await send_email(r.get('email'), h_email, h_g_token, e_token, request.app.config.get('email'),
                               request.app.config.get('e_pass'))

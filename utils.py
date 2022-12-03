@@ -82,7 +82,7 @@ async def send_email(email, hash_email, github_token, email_token: UUID, e_from,
         return False
 
 
-async def chek_email(email):
+async def check_email(email):
     regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
     return re.fullmatch(regex, email)
 
