@@ -74,7 +74,7 @@ async def transfer_to_achievements(conn: Union[Connection, Pool], sbt_id: UUID, 
     if data:
         await conn.execute("""
             INSERT INTO achievements (sbt_id, from_adr, to_adr, cid, image_cid, type, tx_hash)
-            VALUES ($1, $2, $3, $4, $5, $6);
+            VALUES ($1, $2, $3, $4, $5, $6, $7);
             """, data['sbt_id'], data['from_adr'], data['to_adr'], data['cid'], data['image_cid'], data['type'],
                            tx_hash)
         await conn.execute("""

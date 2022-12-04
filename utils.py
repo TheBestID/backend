@@ -63,7 +63,6 @@ async def loadFile(data: File):
 
 def getFromIpfs(cid):
     r = requests.get('https://ipfs.io/ipfs/' + cid)
-    print(r.content)
     return json.loads(r.content)
 
 

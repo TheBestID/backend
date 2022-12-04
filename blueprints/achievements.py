@@ -23,7 +23,6 @@ async def add_achievement_params(request: Request):
     r = request.form
     print(r)
     image: File = request.files.get('image')
-    print(image.name)
 
     async with request.app.config.get('POOL').acquire() as conn:
         from_uuid = await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
@@ -32,16 +31,12 @@ async def add_achievement_params(request: Request):
 
         to_uuid = await checkReg(conn, r.get('to_address'), r.get('chainId'), r.get('blockchain'))
         if not to_uuid:
-            return json({'error': "From wallet isn't registered"}, 409)
+            return json({'error': "From wallet isn't registered"}, 410)
 
         ach_type = 0
         verifier = uuid4()
 
-        data = r.get('data')
-        if image:
-            image_cid = await loadFile(image)
-            data['image_cid'] = image_cid
-        cid = await loadToIpfs(dumps(data), request.app.config['account_eth'].key)
+        cid = await loadToIpfs(r.get('data'), request.app.config['account_eth'].key)
 
         if r.get('blockchain', '').lower() == 'eth':
             ach_uuid, transact = await eth.mint_achievement(request.app.config.get('provider_eth'),
@@ -54,6 +49,7 @@ async def add_achievement_params(request: Request):
             ach_uuid, transact = await near.mint_achievement()
 
         if image:
+            image_cid = await loadFile(image)
             await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, image_cid, ach_type)
         else:
             await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, 'None', ach_type)
@@ -84,11 +80,16 @@ async def get_owned_achievement(request: Request):
         if not await checkReg_by_uid(conn, r.get('uid')):
             return json({'error': "From wallet isn't registered"}, 409)
 
+        def getInfo(cid, image_cid):
+            _data = getFromIpfs(cid)
+            _data['image_cid'] = image_cid
+            return _data
+
         # data = request.app.config.get('contract_ach_eth').functions.getAchievementsOfOwner(
         #     to_checksum_address("0x41c9288b78090946db0fd6d32d8cb1fefe18134b")).call()
         # print(data)
         ach = await get_owned_ach_by_uuid(conn, r.get('uid'))
-        data = [getFromIpfs(i['cid']) for i in ach]
+        data = [getInfo(i['cid'], i['image_cid']) for i in ach]
         return json({'data': data})
 
 
