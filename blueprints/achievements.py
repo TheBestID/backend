@@ -22,7 +22,9 @@ achievements = Blueprint("achievements", url_prefix="/achievements")
 async def add_achievement_params(request: Request):
     r = request.form
     print(r)
+    print(request.json)
     image: File = request.files.get('image')
+    print(image.name)
 
     async with request.app.config.get('POOL').acquire() as conn:
         from_uuid = await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
@@ -52,7 +54,10 @@ async def add_achievement_params(request: Request):
         if r.get('blockchain', '').lower() == 'near':
             ach_uuid, transact = await near.mint_achievement()
 
-        await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, image_cid, ach_type)
+        if image:
+            await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, image_cid, ach_type)
+        else:
+            await add_ach_request(conn, ach_uuid, from_uuid, to_uuid, cid, 'None', ach_type)
 
         return json({'transaction': transact, 'sbt_id': ach_uuid.hex})
 
