@@ -22,7 +22,6 @@ achievements = Blueprint("achievements", url_prefix="/achievements")
 async def add_achievement_params(request: Request):
     r = request.form
     print(r)
-    print(request.json)
     image: File = request.files.get('image')
     print(image.name)
 
