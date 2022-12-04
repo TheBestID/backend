@@ -13,6 +13,8 @@ from database.vacancy_request import get_table_vac_request, create_table_vac_req
 from database.verify import create_table_verify, get_table_verify
 from database.hacks import get_database
 from openapi.user import UserCheck
+from database.company import create_table_companies, get_table_companies
+from database.company_request import create_table_temple_req, get_comp_req
 
 admin = Blueprint("admin", url_prefix="/admin")
 
@@ -131,6 +133,34 @@ async def get_bd_hacks(request: Request):
 
 ########################################################
 
+
+@admin.get("/create_bd_comp")
+async def create_bd_comp(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        await create_table_companies(conn, clear=True)
+        return empty()
+
+@admin.get("/get_bd_comp")
+async def get_bd_comp(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        return json(list(map(dict, await get_table_companies(conn))))
+        
+
+@admin.get("/create_bd_comp_req")
+async def create_bd_comp_req(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        await create_table_temple_req(conn, clear=True)
+        return empty()
+
+
+@admin.get("/get_bd_comp_req")
+async def get_bd_comp_req(request: Request):
+    async with request.app.config.get('POOL').acquire() as conn:
+        return json(list(map(dict, await get_comp_req(conn))))
+
+
+
+########################################################
 
 @admin.post("/add_user_test")
 @openapi.body({"application/json": UserCheck}, required=True)

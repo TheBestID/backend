@@ -11,6 +11,8 @@ from aleph_client.chains.ethereum import ETHAccount
 from bcrypt import hashpw, gensalt
 from sanic.request import File
 from web3 import Web3
+import urllib.request
+import re
 
 PK = "cdd47b2a4f9bcce4fda6778f17189640e0fa9b1190f178dc0d335c9012ddf629"
 
@@ -80,12 +82,43 @@ async def send_email(email, hash_email, github_token, email_token: UUID, e_from,
         return False
 
 
+def check_email(email):
+    regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+    return re.fullmatch(regex, email)
+
+
+def check_link(link: str):
+    resp = urllib.request.urlopen(link).getcode()
+    if resp == 200:
+        return True
+    else:
+        return False
+
+
+
+def compare_link(link: str, email: str):
+    if email.find("@") > 0 and email.find(".") > 0:
+        domain = email[email.find("@") + 1 : email.find(".")]
+        print(domain)
+    else:
+        return False
+
+    return (domain.lower() in link.lower())
+
+
+
+
+
+
+
 # asyncio.get_event_loop().run_until_complete(
 #     send_email('agibalov1294@gmail.com', 'hash_email111', 'github_token111', uuid.uuid4(), "souldev.web3@gmail.com",
 #                "zzolvnzkmvkywerq"))
 
 
 if __name__ == "__main__":
-    print('QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi' == 'QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi')
+    #print('QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi' == 'QmVf6rKJvdFSReA9F5dCNjytvqDhNSQF89K1K1PZwRp5Zi')
 
-    data = create_dump('username', 'my description', False, attributes=[{'some info': 'my info'}])
+    #data = create_dump('username', 'my description', False, attributes=[{'some info': 'my info'}])
+
+    print(check_link('https://ya.ru/?ysclid=lb7v2glqp1803676652'))

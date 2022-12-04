@@ -26,6 +26,14 @@ async def create_table_vacancy(conn: Union[Connection, Pool], clear=False) -> bo
     return True
 
 
+async def get_vacancies_by_uuid(conn: Union[Connection, Pool], owner_uuid: UUID):
+    return await conn.fetch("""
+        SELECT sbt_id::TEXT, owner_uuid::TEXT, cid, price, category, time::TEXT, tx_hash
+        WHERE owner_uuid = $1
+        FROM vacancy;
+        """, owner_uuid)
+
+
 async def get_table_vacancy(conn: Connection):
     return await conn.fetch("""
         SELECT sbt_id::TEXT, owner_uuid::TEXT, cid, price, category, time::TEXT, tx_hash
