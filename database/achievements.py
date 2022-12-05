@@ -39,8 +39,28 @@ async def get_owned_ach_by_uuid(conn: Connection, uuid: UUID):
     return await conn.fetch("""
         SELECT image_cid, cid, type
         FROM achievements
-        WHERE to_adr = $1;
+        WHERE to_adr = $1 AND type = 3;
         """, uuid)
+
+
+async def get_avatar(conn: Connection, uuid: UUID) -> str:
+    data = await conn.fetchrow("""
+        SELECT image_cid
+        FROM achievements
+        WHERE from_adr = $1 AND type = 0
+        ORDER BY time DESC;
+        """, uuid)
+    return data.get('image_cid') if data else ''
+
+
+async def get_background(conn: Connection, uuid: UUID) -> str:
+    data = await conn.fetchrow("""
+        SELECT image_cid
+        FROM achievements
+        WHERE from_adr = $1 AND type = 1
+        ORDER BY time DESC;
+        """, uuid)
+    return data.get('image_cid') if data else ''
 
 
 async def get_created_ach_by_uuid(conn: Connection, uuid: UUID):

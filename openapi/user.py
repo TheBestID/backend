@@ -31,7 +31,7 @@ class UserCheck:
 
 
 class GetUser:
-    uuid: str
+    uid: str
 
 
 class CompanyEmail:

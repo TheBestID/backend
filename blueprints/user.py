@@ -5,13 +5,14 @@ from sanic import Blueprint
 from sanic.response import Request, json, empty
 from sanic_ext import openapi
 
+from database import users, achievements
+from database.company import reg_company
+from database.company_request import add_comp_req, check_company_req, transfer_to_company, del_comp_req
 from database.users import check, add_user, reg_user, checkReg, del_users
 from database.verify import add_verify, check_verify, del_verify, check_in_verify, update_verify
 from openapi.user import UserCheck, GetUser, CompanyEmail, CompanyMsgParams
 from smartcontracts import eth, near
 from utils import hashing, git_token, send_email, check_email, check_link, compare_link
-from database.company_request import add_comp_req, check_company_req, transfer_to_company, del_comp_req
-from database.company import reg_company
 
 user = Blueprint("user", url_prefix="/user")
 
@@ -38,10 +39,14 @@ async def get_user(request: Request):
         # uuid = await get_uuid(conn, r.get('address', ''), r.get('chainId', 0))
 
         # #info = await get_info(conn, uuid)
+        avatar = await achievements.get_avatar(conn, r.get('uid'))
+        background = await achievements.get_background(conn, r.get('uid'))
+        # return {'uid': uid.hex, 'avatar': avatar, 'background': background}
         return json({
-            'username': 'username',
-            'wallets': [{'chainId': 5, 'address': to_checksum_address('0x41c9288b78090946db0fd6d32D8cB1fEfe18134B')},
-                        {'chainId': 4, 'address': to_checksum_address('0x41c9288b78090946db0fd6d32D8cB1fEfe18134B')}]
+            'avatar': avatar, 'background': background, 'username': 'username',
+            'wallets': [
+                {'chainId': 5, 'address': to_checksum_address('0x41c9288b78090946db0fd6d32D8cB1fEfe18134B')},
+                {'chainId': 4, 'address': to_checksum_address('0x41c9288b78090946db0fd6d32D8cB1fEfe18134B')}]
         })
 
 
@@ -84,7 +89,7 @@ async def email(request: Request):
 
         await add_verify(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''), h_email, e_token.hex,
                          h_g_token)
-        return json({"uid": 1})
+        return json(dict(uid=1))
 
 
 @user.post("/msg_params")
@@ -147,7 +152,7 @@ async def add(request: Request):
             await reg_company(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
             await del_comp_req(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
 
-    return json({"uid": uid})
+    return json(dict(uid=uid))
 
 
 @user.post("/delete_params")
@@ -178,7 +183,22 @@ async def delete(request: Request):
         if not uid:
             return json({'error': "Wallet isn't registered"}, 409)
         await del_users(conn, r.get('address', ''), r.get('chainId', 0), r.get('blockchain', ''))
-        return json({'uid': 0})
+        return json(dict(uid=0))
+
+
+@user.get("/users")
+# @openapi.body({"application/json": UserCheck}, required=True)
+async def get_users(request: Request):
+    async def compare(uid):
+        avatar = await achievements.get_avatar(conn, uid)
+        background = await achievements.get_background(conn, uid)
+        username = 'username'
+        return dict(uid=uid.hex, avatar=avatar, background=background, username=username)
+
+    async with request.app.config.get('POOL').acquire() as conn:
+        data = await users.get_users(conn)
+        data2 = [await compare(i['uuid']) for i in data]
+        return json({"data": data2})
 
 # @user.post("/test")
 # @openapi.body({"application/json": UserCheck}, required=True)

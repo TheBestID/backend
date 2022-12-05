@@ -136,6 +136,14 @@ async def get_uuid(conn: Union[Connection, Pool], address: str, chainId: str, bl
     return None
 
 
+async def get_users(conn: Connection):
+    return await conn.fetch("""
+        SELECT uuid
+        FROM users
+        WHERE registered = True;
+    """)
+
+
 async def del_users(conn: Connection, address: str, chainId: int, blockchain: str):
     await conn.execute("""
         DELETE

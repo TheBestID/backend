@@ -1,4 +1,4 @@
-from json import dumps
+from json import loads
 from uuid import uuid4
 
 from sanic import Blueprint
@@ -7,9 +7,9 @@ from sanic.response import Request, json
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody
 
-from database.achievements import get_owned_ach_by_uuid, get_created_ach_by_uuid
+from database.achievements import get_owned_ach_by_uuid
 from database.achievements_request import add_ach_request, transfer_to_achievements
-from database.users import get_uuid, checkReg, checkReg_by_uid
+from database.users import checkReg, checkReg_by_uid
 from openapi.achievement import Achievement, GetAchievement, AchievementAdd
 from smartcontracts import eth, near
 from utils import loadToIpfs, getFromIpfs, loadFile
@@ -24,6 +24,14 @@ async def add_achievement_params(request: Request):
     print(r)
     image: File = request.files.get('image')
 
+    def get_type(data: dict):
+        if data.get('company') == '' and data.get('position') == '':
+            if data.get('description') == 'profile':
+                return 0
+            if data.get('description') == 'background':
+                return 1
+        return 3
+
     async with request.app.config.get('POOL').acquire() as conn:
         from_uuid = await checkReg(conn, r.get('from_address'), r.get('chainId'), r.get('blockchain'))
         if not from_uuid:
@@ -33,7 +41,8 @@ async def add_achievement_params(request: Request):
         if not to_uuid:
             return json({'error': "From wallet isn't registered"}, 410)
 
-        ach_type = 0
+        ach_type = get_type(loads(r.get('data')))
+        print(ach_type)
         verifier = uuid4()
 
         cid = await loadToIpfs(r.get('data'), request.app.config['account_eth'].key)
@@ -92,16 +101,15 @@ async def get_owned_achievement(request: Request):
         data = [getInfo(i['cid'], i['image_cid']) for i in ach]
         return json({'data': data})
 
-
-@achievements.post("/get_created_achievement")
-@openapi.body({"application/json": GetAchievement}, required=True)
-async def get_created_achievement(request: Request):
-    r = request.json
-    async with request.app.config.get('POOL').acquire() as conn:
-        if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
-            return json({'error': "From wallet isn't registered"}, 409)
-
-        uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
-        ach = await get_created_ach_by_uuid(conn, uuid)
-        data = [getFromIpfs(i['cid']) for i in ach]
-        return json({'data': data})
+# @achievements.post("/get_created_achievement")
+# @openapi.body({"application/json": GetAchievement}, required=True)
+# async def get_created_achievement(request: Request):
+#     r = request.json
+#     async with request.app.config.get('POOL').acquire() as conn:
+#         if not await checkReg(conn, r.get('address'), r.get('chainId'), r.get('blockchain')):
+#             return json({'error': "From wallet isn't registered"}, 409)
+#
+#         uuid = await get_uuid(conn, r.get('address'), r.get('chainId'), r.get('blockchain'))
+#         ach = await get_created_ach_by_uuid(conn, uuid)
+#         data = [getFromIpfs(i['cid']) for i in ach]
+#         return json({'data': data})
