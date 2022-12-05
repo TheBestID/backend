@@ -58,7 +58,7 @@ async def del_comp_req(conn: Union[Connection, Pool], address: str, chainId: str
     await conn.execute("""
         DELETE FROM comp_request
         WHERE address = $1 AND chainid = $2 AND blockchain = $3;
-        """, address, chainId, blockchain)
+        """, str(address).lower(), int(chainId), blockchain.lower())
 
 
 async def transfer_to_company(conn: Union[Connection, Pool], address: str, chainId: str, blockchain: str, uuid: UUID) -> bool:
@@ -66,7 +66,7 @@ async def transfer_to_company(conn: Union[Connection, Pool], address: str, chain
         SELECT *
         FROM comp_request
         WHERE address = $1 AND chainid = $2 AND blockchain = $3;
-        """, address, chainId, blockchain)
+        """, str(address).lower(), int(chainId), blockchain.lower())
 
     if data:
         await conn.execute("""
@@ -76,7 +76,7 @@ async def transfer_to_company(conn: Union[Connection, Pool], address: str, chain
         await conn.execute("""
             DELETE FROM comp_request
             WHERE address = $1 AND chainid = $2 and blockchain = $3;
-            """, address, chainId, blockchain)
+            """, str(address).lower(), int(chainId), blockchain.lower())
 
         return True
 
