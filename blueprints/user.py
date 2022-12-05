@@ -36,6 +36,7 @@ async def get_user(request: Request):
         #     return json({'error': 'User is not registered'}, 409)
 
         # uuid = await get_uuid(conn, r.get('address', ''), r.get('chainId', 0))
+
         # #info = await get_info(conn, uuid)
         return json({
             'username': 'username',
